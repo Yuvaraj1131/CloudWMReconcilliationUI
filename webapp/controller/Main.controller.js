@@ -21,6 +21,45 @@ sap.ui.define([
 	//    Service 2 (HANA) : GET  getHanaDeliveryItems(DeliveryDate=<Date>)
 	//    Service 3 (POST) : POST updateHanaDeliveryItems  body {items:[…]} -> string
 	// =====================================================================
+
+	// The ECC function returns raw S/4 field names; the HANA function returns the
+	// CAP DeliveryItems property names. Map ECC -> the CAP shape so display,
+	// reconciliation AND the write-back all share one canonical structure.
+	var ECC_TO_HANA = {
+		Delivery: "Delivery_Delivery",
+		Item: "Item",
+		Material: "Material_Material",
+		DeliveryQty: "DeliveryQuantity",
+		SalesUnit: "SalesUnit_UnitCode",
+		Plant: "Plant",
+		StorLocation: "StorageLocation",
+		ItemCategory: "ItemCategory",
+		Createdby: "CreatedBy",
+		Createdon: "CreatedOn",
+		Batch: "Batch",
+		BaseUnit: "BaseUnitOfMeasure_UnitCode",
+		WeightUnit: "WeightUnit_UnitCode",
+		VolumeUnit: "VolumeUnit_UnitCode",
+		Numerator: "Numerator",
+		Denominat: "Denominator",
+		NetWeight: "NetWeight",
+		GrossWeight: "GrossWeight",
+		Volume: "Volume",
+		PartDlvitem: "PartdlvItem",
+		WarehouseNumber: "WarehouseNumber_WarehouseNumber",
+		SplitToWarehouseNo: "SplitToWarehouseNo",
+		StorageType: "StorageType",
+		StorageBin: "StorageBin",
+		MovementType: "MovementType",
+		MovementType2: "MovementType2",
+		IndDynamicbin: "IndDynamicBin",
+		SalesOrder: "SalesOrder_SalesDocument",
+		SalesOrdItem: "SalesOrderItem",
+		DeleteIndicator: "DeleteIndicator",
+		Time: "Time",
+		IsPicked: "IsPicked"
+	};
+
 	var CONFIG = {
 
 		// Base path of the deployed CAP service (confirmed working). The service
@@ -32,7 +71,8 @@ sap.ui.define([
 			type: "function",
 			name: "getECCDeliveryItems",
 			dateParam: "CreatedOn",
-			dateLiteral: "date"   // service accepts a bare yyyy-MM-dd (verified working)
+			dateLiteral: "date",  // service accepts a bare yyyy-MM-dd (verified working)
+			fieldMap: ECC_TO_HANA // remap raw ECC keys to the canonical CAP shape
 		},
 
 		// Service 2 — HANA source. Unbound function, date passed as a parameter.
@@ -358,7 +398,13 @@ sap.ui.define([
 		_fetchService: function (oCfg, sDate) {
 			var sUrl = this._buildFunctionUrl(oCfg, sDate);
 			return this._ajax(sUrl, "GET").then(function (oData) {
-				return this._normalize(oData);
+				var aRecords = this._normalize(oData);
+				if (oCfg.fieldMap) {
+					aRecords = aRecords.map(function (o) {
+						return this._mapRecord(o, oCfg.fieldMap);
+					}.bind(this));
+				}
+				return aRecords;
 			}.bind(this));
 		},
 
@@ -387,6 +433,48 @@ sap.ui.define([
 
 		_serviceBase: function () {
 			return CONFIG.SERVICE_BASE.replace(/\/+$/, "");
+		},
+
+		/**
+		 * Remap a source record's keys via oMap (sourceKey -> canonicalKey) and
+		 * convert ECC's OData V2 date ("/Date(ms)/") and ISO-8601 duration
+		 * ("PT10H13M57S") into the Edm.Date / Edm.TimeOfDay literals CAP uses.
+		 */
+		_mapRecord: function (oRaw, oMap) {
+			var oOut = {};
+			Object.keys(oMap).forEach(function (sFrom) {
+				if (oRaw[sFrom] !== undefined) {
+					oOut[oMap[sFrom]] = oRaw[sFrom];
+				}
+			});
+			if (typeof oOut.CreatedOn === "string" && oOut.CreatedOn.indexOf("/Date(") === 0) {
+				oOut.CreatedOn = this._fromV2Date(oOut.CreatedOn);
+			}
+			if (typeof oOut.Time === "string" && oOut.Time.indexOf("PT") === 0) {
+				oOut.Time = this._fromIsoDuration(oOut.Time);
+			}
+			return oOut;
+		},
+
+		/** "/Date(1780617600000)/" -> "2026-06-05" (UTC). */
+		_fromV2Date: function (sVal) {
+			var aMatch = /\/Date\((-?\d+)\)\//.exec(sVal);
+			if (!aMatch) {
+				return sVal;
+			}
+			var oDate = new Date(parseInt(aMatch[1], 10));
+			var pad = function (n) { return String(n).padStart(2, "0"); };
+			return oDate.getUTCFullYear() + "-" + pad(oDate.getUTCMonth() + 1) + "-" + pad(oDate.getUTCDate());
+		},
+
+		/** "PT10H13M57S" -> "10:13:57". */
+		_fromIsoDuration: function (sVal) {
+			var aMatch = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/.exec(sVal);
+			if (!aMatch) {
+				return sVal;
+			}
+			var pad = function (n) { return String(n || 0).padStart(2, "0"); };
+			return pad(aMatch[1]) + ":" + pad(aMatch[2]) + ":" + pad(aMatch[3]);
 		},
 
 		/**
