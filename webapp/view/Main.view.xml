@@ -86,13 +86,12 @@
 									<Title text="{i18n>tabEcc}" level="H2" />
 									<ToolbarSpacer />
 									<SearchField width="18rem" search=".onSearch" placeholder="{i18n>searchPlaceholder}" />
-									</OverflowToolbar>
-								</headerToolbar>
+								</OverflowToolbar>
+							</headerToolbar>
 							<columns>
 								<Column><Text text="{i18n>colVbeln}" /></Column>
 								<Column><Text text="{i18n>colPosnr}" /></Column>
 								<Column><Text text="{i18n>colMatnr}" /></Column>
-								<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>colArktx}" /></Column>
 								<Column hAlign="End"><Text text="{i18n>colLfimg}" /></Column>
 								<Column><Text text="{i18n>colVrkme}" /></Column>
 								<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>colWerks}" /></Column>
@@ -101,14 +100,13 @@
 							<items>
 								<ColumnListItem>
 									<cells>
-										<ObjectIdentifier title="{ecc>VBELN}" />
-										<Text text="{ecc>POSNR}" />
-										<Text text="{ecc>MATNR}" />
-										<Text text="{ecc>ARKTX}" />
-										<ObjectNumber number="{ecc>LFIMG}" unit="{ecc>VRKME}" />
-										<Text text="{ecc>VRKME}" />
-										<Text text="{ecc>WERKS}" />
-										<Text text="{ecc>LGORT}" />
+										<ObjectIdentifier title="{ecc>Delivery_Delivery}" />
+										<Text text="{ecc>Item}" />
+										<Text text="{ecc>Material_Material}" />
+										<ObjectNumber number="{ecc>DeliveryQuantity}" unit="{ecc>SalesUnit_UnitCode}" />
+										<Text text="{ecc>SalesUnit_UnitCode}" />
+										<Text text="{ecc>Plant}" />
+										<Text text="{ecc>StorageLocation}" />
 									</cells>
 								</ColumnListItem>
 							</items>
@@ -135,7 +133,6 @@
 								<Column><Text text="{i18n>colVbeln}" /></Column>
 								<Column><Text text="{i18n>colPosnr}" /></Column>
 								<Column><Text text="{i18n>colMatnr}" /></Column>
-								<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>colArktx}" /></Column>
 								<Column hAlign="End"><Text text="{i18n>colLfimg}" /></Column>
 								<Column><Text text="{i18n>colVrkme}" /></Column>
 								<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>colWerks}" /></Column>
@@ -144,14 +141,13 @@
 							<items>
 								<ColumnListItem>
 									<cells>
-										<ObjectIdentifier title="{hana>VBELN}" />
-										<Text text="{hana>POSNR}" />
-										<Text text="{hana>MATNR}" />
-										<Text text="{hana>ARKTX}" />
-										<ObjectNumber number="{hana>LFIMG}" unit="{hana>VRKME}" />
-										<Text text="{hana>VRKME}" />
-										<Text text="{hana>WERKS}" />
-										<Text text="{hana>LGORT}" />
+										<ObjectIdentifier title="{hana>Delivery_Delivery}" />
+										<Text text="{hana>Item}" />
+										<Text text="{hana>Material_Material}" />
+										<ObjectNumber number="{hana>DeliveryQuantity}" unit="{hana>SalesUnit_UnitCode}" />
+										<Text text="{hana>SalesUnit_UnitCode}" />
+										<Text text="{hana>Plant}" />
+										<Text text="{hana>StorageLocation}" />
 									</cells>
 								</ColumnListItem>
 							</items>
@@ -181,7 +177,6 @@
 								<Column><Text text="{i18n>colVbeln}" /></Column>
 								<Column><Text text="{i18n>colPosnr}" /></Column>
 								<Column><Text text="{i18n>colMatnr}" /></Column>
-								<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>colArktx}" /></Column>
 								<Column hAlign="End"><Text text="{i18n>colLfimg}" /></Column>
 								<Column><Text text="{i18n>colVrkme}" /></Column>
 								<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>colWerks}" /></Column>
@@ -191,14 +186,13 @@
 							<items>
 								<ColumnListItem highlight="{= ${missing>posted} ? 'Success' : (${missing>postError} ? 'Error' : 'None') }">
 									<cells>
-										<ObjectIdentifier title="{missing>VBELN}" />
-										<Text text="{missing>POSNR}" />
-										<Text text="{missing>MATNR}" />
-										<Text text="{missing>ARKTX}" />
-										<ObjectNumber number="{missing>LFIMG}" unit="{missing>VRKME}" />
-										<Text text="{missing>VRKME}" />
-										<Text text="{missing>WERKS}" />
-										<Text text="{missing>LGORT}" />
+										<ObjectIdentifier title="{missing>Delivery_Delivery}" />
+										<Text text="{missing>Item}" />
+										<Text text="{missing>Material_Material}" />
+										<ObjectNumber number="{missing>DeliveryQuantity}" unit="{missing>SalesUnit_UnitCode}" />
+										<Text text="{missing>SalesUnit_UnitCode}" />
+										<Text text="{missing>Plant}" />
+										<Text text="{missing>StorageLocation}" />
 										<ObjectStatus
 											text="{= ${missing>posted} ? ${i18n>statePosted} : (${missing>postError} ? ${i18n>stateFailed} : ${i18n>statePending}) }"
 											state="{= ${missing>posted} ? 'Success' : (${missing>postError} ? 'Error' : 'Warning') }"

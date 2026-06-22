@@ -11,61 +11,52 @@ sap.ui.define([
 	// =====================================================================
 	//  CONFIG
 	//  ---------------------------------------------------------------------
-	//  Drop your real endpoints in here. The three services were described
-	//  as already built; only the URLs need wiring up.
+	//  Maps onto the deployed CAP "ReconcileService" (OData V4). All paths are
+	//  relative and reached through the CloudWM-CAP destination — the ui5.yaml
+	//  proxy (BAS preview) and the xs-app.json route (deployed) both forward
+	//  /odata/* there.
 	//
-	//  All three are paths on ONE deployed CAP app (OData V4). They are
-	//  reached through the CloudWM-CAP destination — the ui5.yaml proxy (BAS
-	//  preview) and the xs-app.json route (deployed) both forward /odata/*
-	//  there, so these URLs stay relative.
+	//  The three services are an OData V4 function pair + one action:
+	//    Service 1 (ECC)  : GET  getECCDeliveryItems(CreatedOn=<DateTimeOffset>)
+	//    Service 2 (HANA) : GET  getHanaDeliveryItems(DeliveryDate=<Date>)
+	//    Service 3 (POST) : POST updateHanaDeliveryItems  body {items:[…]} -> string
 	// =====================================================================
 	var CONFIG = {
 
-		// Service 1 — fetch LIPS delivery items from ECC, filtered by date.
+		// Base path of the deployed CAP service. VERIFY against the URL where you
+		// found $metadata — CAP derives "reconcile" from the service name
+		// "ReconcileService"; adjust this single constant if your path differs.
+		SERVICE_BASE: "/odata/v4/reconcile",
+
+		// Service 1 — ECC source. Unbound function, date passed as a parameter.
 		ECC: {
-			url: "/odata/v4/REPLACE_ECC_SERVICE/LIPSItems",  // CAP service path + entity set
-			method: "GET",
-			// CAP services speak OData V4 — filter by date with a $filter system query option.
-			//   dateMode "odata" -> $filter=<dateField> <dateOperator> <value>
-			//   dateMode "param" -> <dateParam>=<value>   (use this if your CAP handler reads a custom query param)
-			dateMode: "odata",
-			dateField: "ERDAT",         // OData property to filter on
-			dateOperator: "eq",
-			dateQuote: false,           // true when the date is modelled as a string (cds.String / SAP DATS) -> 'value'
-			dateFormat: "yyyy-MM-dd",   // "yyyy-MM-dd" for cds.Date; "yyyyMMdd" for DATS strings
-			dateParam: "date",          // only used when dateMode = "param"
-			extraParams: {}             // constant query options, e.g. {"$top": "5000", "$orderby": "VBELN,POSNR"}
+			type: "function",
+			name: "getECCDeliveryItems",
+			dateParam: "CreatedOn",
+			dateLiteral: "datetimeoffset"   // -> 2026-06-22T00:00:00Z
 		},
 
-		// Service 2 — fetch LIPS delivery items from HANA, filtered by date.
+		// Service 2 — HANA source. Unbound function, date passed as a parameter.
 		HANA: {
-			url: "/odata/v4/REPLACE_HANA_SERVICE/LIPSItems",  // CAP service path + entity set
-			method: "GET",
-			dateMode: "odata",
-			dateField: "ERDAT",
-			dateOperator: "eq",
-			dateQuote: false,
-			dateFormat: "yyyy-MM-dd",
-			dateParam: "date",
-			extraParams: {}
+			type: "function",
+			name: "getHanaDeliveryItems",
+			dateParam: "DeliveryDate",
+			dateLiteral: "date"             // -> 2026-06-22
 		},
 
-		// Service 3 — POST missing items into HANA.
+		// Service 3 — write the selected missing items into HANA. Unbound action.
 		POST: {
-			url: "/odata/v4/REPLACE_HANA_SERVICE/LIPSItems",  // CAP entity set that accepts creates
-			method: "POST",
-			// "single"  -> one POST per item (correct for CAP / OData V4 entity-set creates)
-			// "batch"   -> one POST with an array body (only if your CAP service exposes a custom bulk action)
-			mode: "single",
-			// For "batch" mode the array is wrapped under this key. Use "" to POST the bare array.
-			batchWrapperKey: "items",
-			// CAP enforces CSRF protection on modifying requests by default — fetch a token first.
-			useCsrf: true
+			type: "action",
+			name: "updateHanaDeliveryItems",
+			paramName: "items",             // action parameter holding the array
+			useCsrf: true                   // fetch an X-CSRF-Token first (best-effort)
 		},
 
-		// LIPS fields surfaced by the app. The first two form the reconciliation key.
-		FIELDS: ["VBELN", "POSNR", "MATNR", "ARKTX", "LFIMG", "VRKME", "WERKS", "LGORT"],
-		KEY_FIELDS: ["VBELN", "POSNR"]
+		// Reconciliation key on ReconcileService.DeliveryItems.
+		KEY_FIELDS: ["Delivery_Delivery", "Item"],
+
+		// Entity properties shown in the tables / matched by the search field.
+		FIELDS: ["Delivery_Delivery", "Item", "Material_Material", "DeliveryQuantity", "SalesUnit_UnitCode", "Plant", "StorageLocation"]
 	};
 
 	return Controller.extend("com.bluestonex.cloudwmreconcilliationui.controller.Main", {
@@ -156,7 +147,7 @@ sap.ui.define([
 		},
 
 		/**
-		 * Live client-side filter across the visible LIPS fields for the active table.
+		 * Live client-side filter across the visible fields for the active table.
 		 */
 		onSearch: function (oEvent) {
 			var sQuery = (oEvent.getParameter("query") || oEvent.getParameter("newValue") || "").trim();
@@ -219,7 +210,6 @@ sap.ui.define([
 		onPostSelected: function () {
 			var oTable = this.byId("tblMissing");
 			var oModel = this.getView().getModel("missing");
-			var oUi = this.getView().getModel("ui");
 
 			var aContexts = oTable.getSelectedContexts().filter(function (oCtx) {
 				return !oModel.getProperty(oCtx.getPath() + "/posted");
@@ -240,9 +230,13 @@ sap.ui.define([
 		},
 
 		/* ============================================================= */
-		/*  CORE: POSTING                                                */
+		/*  CORE: POSTING (OData V4 action)                              */
 		/* ============================================================= */
 
+		/**
+		 * Send all selected items to the updateHanaDeliveryItems action in one call.
+		 * The action takes the whole collection, so success/failure is all-or-nothing.
+		 */
 		_doPost: function (aContexts) {
 			var oModel = this.getView().getModel("missing");
 			var oUi = this.getView().getModel("ui");
@@ -251,76 +245,72 @@ sap.ui.define([
 			oUi.setProperty("/busy", true);
 			oUi.setProperty("/postInFlight", true);
 
-			var aPayloads = aContexts.map(function (oCtx) {
-				return { path: oCtx.getPath(), data: this._pickFields(oModel.getProperty(oCtx.getPath())) };
+			var aItems = aContexts.map(function (oCtx) {
+				return this._cleanRecord(oModel.getProperty(oCtx.getPath()));
 			}.bind(this));
 
-			this._postPayloads(aPayloads, oModel).then(function (oSummary) {
-				oUi.setProperty("/busy", false);
-				oUi.setProperty("/postInFlight", false);
-
-				// Deselect the rows we just successfully posted.
+			this._callAction(aItems).then(function (sResult) {
+				aContexts.forEach(function (oCtx) {
+					oModel.setProperty(oCtx.getPath() + "/posted", true);
+					oModel.setProperty(oCtx.getPath() + "/postError", "");
+				});
 				oTable.removeSelections(true);
 				this._updateSelectedCount();
 				this._refreshMissingCount();
 				this._applyMissingRowStyles();
-
-				if (oSummary.failed === 0) {
-					MessageToast.show(this._t("postAllOk", [oSummary.ok]));
-				} else {
-					MessageBox.warning(this._t("postPartial", [oSummary.ok, oSummary.failed]));
-				}
+				MessageToast.show(this._t("postAllOk", [aItems.length]) + (sResult ? " — " + sResult : ""));
 			}.bind(this)).catch(function (oErr) {
+				var sMsg = (oErr && oErr.message) ? oErr.message : String(oErr);
+				aContexts.forEach(function (oCtx) {
+					oModel.setProperty(oCtx.getPath() + "/posted", false);
+					oModel.setProperty(oCtx.getPath() + "/postError", sMsg);
+				});
+				this._applyMissingRowStyles();
+				MessageBox.error(this._t("postError") + "\n\n" + sMsg);
+			}.bind(this)).then(function () {
 				oUi.setProperty("/busy", false);
 				oUi.setProperty("/postInFlight", false);
-				MessageBox.error(this._t("postError") + "\n\n" + (oErr && oErr.message ? oErr.message : oErr));
-			}.bind(this));
+			});
 		},
 
 		/**
-		 * Dispatch payloads according to CONFIG.POST.mode and tag each row's result.
-		 * @returns {Promise<{ok:number, failed:number}>}
+		 * Invoke the unbound action, optionally after a CSRF-token handshake.
+		 * @returns {Promise<string>} the action's string result (if any).
 		 */
-		_postPayloads: function (aPayloads, oModel) {
+		_callAction: function (aItems) {
 			var that = this;
+			var sUrl = this._serviceBase() + "/" + CONFIG.POST.name;
+			var oBody = {};
+			oBody[CONFIG.POST.paramName] = aItems;
 
-			return this._csrfToken(CONFIG.POST).then(function (sToken) {
-
-				function tag(sPath, bOk, oRespOrErr) {
-					oModel.setProperty(sPath + "/posted", bOk);
-					oModel.setProperty(sPath + "/postError", bOk ? "" : (oRespOrErr && oRespOrErr.message ? oRespOrErr.message : String(oRespOrErr || "failed")));
-				}
-
-				if (CONFIG.POST.mode === "batch") {
-					var oBody = CONFIG.POST.batchWrapperKey
-						? (function () { var o = {}; o[CONFIG.POST.batchWrapperKey] = aPayloads.map(function (p) { return p.data; }); return o; })()
-						: aPayloads.map(function (p) { return p.data; });
-
-					return that._ajax(CONFIG.POST.url, "POST", oBody, sToken).then(function () {
-						aPayloads.forEach(function (p) { tag(p.path, true); });
-						return { ok: aPayloads.length, failed: 0 };
-					}).catch(function (oErr) {
-						aPayloads.forEach(function (p) { tag(p.path, false, oErr); });
-						throw oErr;
-					});
-				}
-
-				// "single" mode — one request per row; failures are isolated per row.
-				var iOk = 0, iFailed = 0;
-				return aPayloads.reduce(function (oChain, p) {
-					return oChain.then(function () {
-						return that._ajax(CONFIG.POST.url, "POST", p.data, sToken).then(function () {
-							tag(p.path, true);
-							iOk++;
-						}).catch(function (oErr) {
-							tag(p.path, false, oErr);
-							iFailed++;
-						});
-					});
-				}, Promise.resolve()).then(function () {
-					return { ok: iOk, failed: iFailed };
+			var fnPost = function (sToken) {
+				return that._ajax(sUrl, "POST", oBody, sToken).then(function (oResp) {
+					// An action returning Edm.String comes back as { value: "…" } in V4.
+					if (oResp && typeof oResp === "object" && oResp.value !== undefined) {
+						return oResp.value;
+					}
+					return (typeof oResp === "string") ? oResp : "";
 				});
+			};
+
+			if (CONFIG.POST.useCsrf) {
+				return this._csrfToken(this._serviceBase()).then(fnPost);
+			}
+			return fnPost("");
+		},
+
+		/**
+		 * Strip local UI flags and OData annotations before sending a record back to CAP.
+		 */
+		_cleanRecord: function (oRec) {
+			var oOut = {};
+			Object.keys(oRec || {}).forEach(function (sKey) {
+				if (sKey === "posted" || sKey === "postError" || sKey.charAt(0) === "@") {
+					return;
+				}
+				oOut[sKey] = oRec[sKey];
 			});
+			return oOut;
 		},
 
 		/* ============================================================= */
@@ -328,7 +318,8 @@ sap.ui.define([
 		/* ============================================================= */
 
 		/**
-		 * Missing = items present in ECC but absent from HANA, keyed on VBELN + POSNR.
+		 * Missing = items present in ECC but absent from HANA, keyed on
+		 * Delivery_Delivery + Item.
 		 */
 		_reconcile: function (aEcc, aHana) {
 			var oHanaIndex = {};
@@ -339,12 +330,13 @@ sap.ui.define([
 			var aMissing = aEcc.filter(function (o) {
 				return !oHanaIndex[this._key(o)];
 			}.bind(this)).map(function (o) {
-				// Clone + reset post-status flags so re-loads start clean.
-				var oRow = this._pickFields(o);
+				// Keep the FULL ECC record so it can be written back to HANA verbatim;
+				// only add local status flags.
+				var oRow = Object.assign({}, o);
 				oRow.posted = false;
 				oRow.postError = "";
 				return oRow;
-			}.bind(this));
+			});
 
 			this.getView().getModel("missing").setProperty("/items", aMissing);
 			this.getView().getModel("ui").setProperty("/missingCount", aMissing.length);
@@ -354,37 +346,7 @@ sap.ui.define([
 		_key: function (o) {
 			return CONFIG.KEY_FIELDS.map(function (sField) {
 				return String(o[sField] == null ? "" : o[sField]).trim();
-			}).join("");
-		},
-
-		/**
-		 * Project an arbitrary source record down to the known LIPS fields,
-		 * tolerating lower-case / mixed-case field names from REST sources.
-		 */
-		_pickFields: function (oSrc) {
-			var oOut = {};
-			CONFIG.FIELDS.forEach(function (sField) {
-				oOut[sField] = this._readField(oSrc, sField);
-			}.bind(this));
-			return oOut;
-		},
-
-		_readField: function (oSrc, sField) {
-			if (oSrc == null) {
-				return "";
-			}
-			if (oSrc[sField] != null) {
-				return oSrc[sField];
-			}
-			// Case-insensitive fallback (e.g. "vbeln", "Vbeln").
-			var sLower = sField.toLowerCase();
-			var aKeys = Object.keys(oSrc);
-			for (var i = 0; i < aKeys.length; i++) {
-				if (aKeys[i].toLowerCase() === sLower) {
-					return oSrc[aKeys[i]];
-				}
-			}
-			return "";
+			}).join("");
 		},
 
 		/* ============================================================= */
@@ -392,60 +354,47 @@ sap.ui.define([
 		/* ============================================================= */
 
 		/**
-		 * Fetch one source service for a given date and return a normalized array.
+		 * Invoke one OData V4 function for a given date and return a normalized array.
 		 */
 		_fetchService: function (oCfg, sDate) {
-			var sUrl = this._buildUrl(oCfg, sDate);
-			return this._ajax(sUrl, oCfg.method || "GET").then(function (oData) {
+			var sUrl = this._buildFunctionUrl(oCfg, sDate);
+			return this._ajax(sUrl, "GET").then(function (oData) {
 				return this._normalize(oData);
 			}.bind(this));
 		},
 
-		_buildUrl: function (oCfg, sDate) {
-			var aParams = [];
-			var sVal = this._formatDate(sDate, oCfg.dateFormat);
-
-			if ((oCfg.dateMode || "odata") === "odata" && oCfg.dateField) {
-				// CAP / OData V4 system query option, e.g. $filter=ERDAT eq 2026-06-22
-				var sLiteral = oCfg.dateQuote ? ("'" + sVal + "'") : sVal;
-				aParams.push("$filter=" + encodeURIComponent(oCfg.dateField + " " + (oCfg.dateOperator || "eq") + " " + sLiteral));
-			} else if (oCfg.dateParam) {
-				// Custom query parameter, e.g. ?date=2026-06-22
-				aParams.push(encodeURIComponent(oCfg.dateParam) + "=" + encodeURIComponent(sVal));
-			}
-
-			Object.keys(oCfg.extraParams || {}).forEach(function (sKey) {
-				// Leave OData system options ($top, $orderby, ...) unescaped so the server recognises them.
-				var sK = sKey.charAt(0) === "$" ? sKey : encodeURIComponent(sKey);
-				aParams.push(sK + "=" + encodeURIComponent(oCfg.extraParams[sKey]));
-			});
-
-			if (!aParams.length) {
-				return oCfg.url;
-			}
-			return oCfg.url + (oCfg.url.indexOf("?") === -1 ? "?" : "&") + aParams.join("&");
+		/**
+		 * Build an unbound OData V4 function-call URL with an inline date parameter,
+		 * e.g. /odata/v4/reconcile/getHanaDeliveryItems(DeliveryDate=2026-06-22)
+		 */
+		_buildFunctionUrl: function (oCfg, sDate) {
+			var sLiteral = this._functionDateLiteral(sDate, oCfg.dateLiteral);
+			return this._serviceBase() + "/" + oCfg.name + "(" + oCfg.dateParam + "=" + sLiteral + ")";
 		},
 
 		/**
-		 * Reformat the DatePicker value (always "yyyy-MM-dd") to the wire format the
-		 * service expects. "yyyyMMdd" suits SAP DATS string fields; the default keeps
-		 * the ISO form used by OData V4 Edm.Date.
+		 * OData V4 temporal literals are unquoted. Edm.Date -> yyyy-MM-dd;
+		 * Edm.DateTimeOffset -> yyyy-MM-ddT00:00:00Z (DatePicker yields yyyy-MM-dd).
 		 */
-		_formatDate: function (sIso, sFormat) {
+		_functionDateLiteral: function (sIso, sKind) {
 			if (!sIso) {
 				return sIso;
 			}
-			if (sFormat === "yyyyMMdd") {
-				return sIso.replace(/-/g, "");
+			if (sKind === "datetimeoffset") {
+				return sIso + "T00:00:00Z";
 			}
 			return sIso;
 		},
 
+		_serviceBase: function () {
+			return CONFIG.SERVICE_BASE.replace(/\/+$/, "");
+		},
+
 		/**
 		 * Normalize any of OData V2, OData V4 or plain REST into a flat array.
+		 *   - OData V4 collection : { value: [...] }   (function results land here)
 		 *   - OData V2 collection : { d: { results: [...] } }
 		 *   - OData V2 entity     : { d: { ... } }
-		 *   - OData V4 collection : { value: [...] }
 		 *   - plain REST array    : [ ... ]
 		 *   - plain REST wrapped  : { items|records|data|results: [...] }
 		 *   - single object       : { ... }
@@ -518,16 +467,13 @@ sap.ui.define([
 		},
 
 		/**
-		 * Best-effort CSRF token fetch for the POST service. Resolves to "" when
-		 * disabled or unavailable so the POST can still proceed for plain REST.
+		 * Best-effort CSRF token fetch (GET the service document). Resolves to "" on
+		 * failure so the action can still proceed when no token is required.
 		 */
-		_csrfToken: function (oCfg) {
-			if (!oCfg.useCsrf) {
-				return Promise.resolve("");
-			}
+		_csrfToken: function (sUrl) {
 			return new Promise(function (resolve) {
 				var oXhr = new XMLHttpRequest();
-				oXhr.open("GET", oCfg.url, true);
+				oXhr.open("GET", sUrl, true);
 				oXhr.setRequestHeader("X-CSRF-Token", "Fetch");
 				oXhr.setRequestHeader("Accept", "application/json");
 				oXhr.onload = function () {

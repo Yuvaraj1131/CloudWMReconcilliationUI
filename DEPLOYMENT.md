@@ -51,29 +51,24 @@ Add these **Additional Properties**:
 > app (the managed approuter uses the subaccount XSUAA). For same-subaccount apps this is the
 > default.
 
-## Step 2 — Get the real service paths and fill `CONFIG`
+## Step 2 — Verify the service base path
 
-Open the CAP service index to see the exact OData V4 service + entity-set names:
+`CONFIG` is already wired to the real **`ReconcileService`** (OData V4):
 
-```
-<CAP base URL>/
-<CAP base URL>/odata/v4/<service>/$metadata
-```
+| Service | Kind | Invocation |
+|---|---|---|
+| ECC fetch | function | `GET getECCDeliveryItems(CreatedOn=<DateTimeOffset>)` |
+| HANA fetch | function | `GET getHanaDeliveryItems(DeliveryDate=<Date>)` |
+| HANA write | action | `POST updateHanaDeliveryItems` body `{ "items": [ … ] }` |
 
-Then set the three URLs in the `CONFIG` block of
-[`webapp/controller/Main.controller.js`](webapp/controller/Main.controller.js):
+The reconciliation key is `Delivery_Delivery` + `Item`, and the tables bind the
+`DeliveryItems` properties (`Material_Material`, `DeliveryQuantity`, `SalesUnit_UnitCode`,
+`Plant`, `StorageLocation`).
 
-```js
-ECC.url  = "/odata/v4/<ecc-service>/<EntitySet>"
-HANA.url = "/odata/v4/<hana-service>/<EntitySet>"
-POST.url = "/odata/v4/<hana-service>/<EntitySet>"   // entity set that accepts creates
-```
-
-Also confirm in `$metadata`:
-- the date property name (`dateField`, currently `ERDAT`) and whether it is a date
-  (`dateQuote:false`) or a string/DATS field (`dateQuote:true`, `dateFormat:"yyyyMMdd"`);
-- whether the "post" service is a plain **entity create** (current assumption, `mode:"single"`)
-  or a CAP **action** (needs a different body).
+The only thing to confirm is **`SERVICE_BASE`** in
+[`webapp/controller/Main.controller.js`](webapp/controller/Main.controller.js): it must match
+the path where you found `$metadata`. CAP derives `/odata/v4/reconcile` from the service name
+`ReconcileService`; change that one constant if your path differs.
 
 ## Step 3 — Preview in BAS
 
