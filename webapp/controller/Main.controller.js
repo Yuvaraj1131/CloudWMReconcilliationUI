@@ -14,15 +14,16 @@ sap.ui.define([
 	//  Drop your real endpoints in here. The three services were described
 	//  as already built; only the URLs need wiring up.
 	//
-	//  The local-dev path prefixes (/ecc, /hana) line up with the proxy
-	//  destinations in ui5.yaml and the routes in xs-app.json. Swap them for
-	//  fully-qualified URLs if you are not running behind the proxy.
+	//  All three are paths on ONE deployed CAP app (OData V4). They are
+	//  reached through the CloudWM-CAP destination — the ui5.yaml proxy (BAS
+	//  preview) and the xs-app.json route (deployed) both forward /odata/*
+	//  there, so these URLs stay relative.
 	// =====================================================================
 	var CONFIG = {
 
 		// Service 1 — fetch LIPS delivery items from ECC, filtered by date.
 		ECC: {
-			url: "/ecc/REPLACE_ECC_SERVICE/LIPSItems",  // CAP service path + entity set
+			url: "/odata/v4/REPLACE_ECC_SERVICE/LIPSItems",  // CAP service path + entity set
 			method: "GET",
 			// CAP services speak OData V4 — filter by date with a $filter system query option.
 			//   dateMode "odata" -> $filter=<dateField> <dateOperator> <value>
@@ -38,7 +39,7 @@ sap.ui.define([
 
 		// Service 2 — fetch LIPS delivery items from HANA, filtered by date.
 		HANA: {
-			url: "/hana/REPLACE_HANA_SERVICE/LIPSItems",  // CAP service path + entity set
+			url: "/odata/v4/REPLACE_HANA_SERVICE/LIPSItems",  // CAP service path + entity set
 			method: "GET",
 			dateMode: "odata",
 			dateField: "ERDAT",
@@ -51,7 +52,7 @@ sap.ui.define([
 
 		// Service 3 — POST missing items into HANA.
 		POST: {
-			url: "/hana/REPLACE_HANA_SERVICE/LIPSItems",  // CAP entity set that accepts creates
+			url: "/odata/v4/REPLACE_HANA_SERVICE/LIPSItems",  // CAP entity set that accepts creates
 			method: "POST",
 			// "single"  -> one POST per item (correct for CAP / OData V4 entity-set creates)
 			// "batch"   -> one POST with an array body (only if your CAP service exposes a custom bulk action)

@@ -14,19 +14,19 @@ framework:
 server:
   customMiddleware:
     # ---------------------------------------------------------------------
-    # Local dev proxy. Point these placeholder hosts at your real ECC / HANA
-    # gateways. The "path" prefixes here must line up with the CONFIG block
-    # in webapp/controller/Main.controller.js (/ecc and /hana).
+    # Local dev proxy for BAS. Forwards /odata/* to the deployed CAP app via
+    # the CloudWM-CAP destination (create it in the BTP cockpit). This keeps
+    # the preview same-origin so the browser avoids CORS.
     # ---------------------------------------------------------------------
     - name: fiori-tools-proxy
       afterMiddleware: compression
       configuration:
         ignoreCertError: true
         backend:
-          - path: /ecc
-            url: https://REPLACE-ECC-HOST:44300   # Service 1 + (ECC source)
-          - path: /hana
-            url: https://REPLACE-HANA-HOST:44300   # Service 2 + Service 3 (HANA source/target)
+          # All 3 CAP OData V4 services live on ONE app, reached through the
+          # CloudWM-CAP destination. The proxy forwards /odata/* to it.
+          - path: /odata
+            destination: CloudWM-CAP
         ui5:
           path:
             - /resources

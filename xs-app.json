@@ -3,20 +3,12 @@
   "authenticationMethod": "route",
   "routes": [
     {
-      "comment": "Service 1 - LIPS items from ECC. Maps /ecc/* to the ecc-backend destination.",
-      "source": "^/ecc/(.*)$",
-      "target": "/$1",
-      "destination": "ecc-backend",
+      "comment": "All CAP OData V4 services (ECC fetch, HANA fetch, HANA create) via the CloudWM-CAP destination. CSRF is handled by CAP itself, so the approuter does not double-guard it.",
+      "source": "^/odata/v4/(.*)$",
+      "target": "/odata/v4/$1",
+      "destination": "CloudWM-CAP",
       "authenticationType": "xsuaa",
       "csrfProtection": false
-    },
-    {
-      "comment": "Service 2 + Service 3 - LIPS items from HANA and POST of missing items.",
-      "source": "^/hana/(.*)$",
-      "target": "/$1",
-      "destination": "hana-backend",
-      "authenticationType": "xsuaa",
-      "csrfProtection": true
     },
     {
       "comment": "Static app content served from the HTML5 Application Repository.",
