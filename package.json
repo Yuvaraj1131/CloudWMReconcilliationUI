@@ -1,0 +1,30 @@
+{
+  "name": "cloudwmreconcilliationui",
+  "version": "1.0.0",
+  "description": "Freestyle SAPUI5 reconciliation monitor for the SAP LIPS delivery-item table (ECC vs HANA)",
+  "private": true,
+  "keywords": [
+    "ui5",
+    "sapui5",
+    "fiori",
+    "freestyle",
+    "lips",
+    "reconciliation"
+  ],
+  "main": "webapp/index.html",
+  "scripts": {
+    "start": "ui5 serve --open index.html",
+    "start-noflp": "ui5 serve --open index.html",
+    "build": "ui5 build --clean-dest --dest dist",
+    "lint": "echo \"Add eslint here if desired\""
+  },
+  "devDependencies": {
+    "@ui5/cli": "^3.11.0",
+    "@sap/ux-ui5-tooling": "^1.15.4"
+  },
+  "ui5": {
+    "dependencies": [
+      "@sap/ux-ui5-tooling"
+    ]
+  }
+}

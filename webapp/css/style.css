@@ -1,0 +1,25 @@
+/* ==========================================================================
+   LIPS Reconciliation Monitor — app-specific styling.
+   The green/red row feedback for posted items is driven by two cooperating
+   mechanisms: the ColumnListItem "highlight" property paints the left accent
+   bar from the model, and the .lipsPostedRow / .lipsFailedRow classes (added
+   to the row controls in Main.controller#_applyMissingRowStyles) wash the
+   whole row so the result reads clearly at a glance.
+   ========================================================================== */
+
+/* Successfully posted rows — soft green wash across the full row. */
+.sapMListTblRow.lipsPostedRow,
+.sapMListTblRow.lipsPostedRow > td {
+	background-color: #e8faf0 !important;
+}
+
+/* Failed rows — soft red wash across the full row. */
+.sapMListTblRow.lipsFailedRow,
+.sapMListTblRow.lipsFailedRow > td {
+	background-color: #ffeaea !important;
+}
+
+/* Give the count badges on the tabs a touch more breathing room. */
+.sapMITBCount {
+	font-variant-numeric: tabular-nums;
+}

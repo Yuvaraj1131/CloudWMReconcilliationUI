@@ -1,0 +1,40 @@
+specVersion: "3.1"
+metadata:
+  name: com.bluestonex.cloudwmreconcilliationui
+type: application
+framework:
+  name: SAPUI5
+  version: "1.120.6"
+  libraries:
+    - name: sap.m
+    - name: sap.ui.core
+    - name: sap.ui.layout
+    - name: sap.f
+    - name: themelib_sap_horizon
+server:
+  customMiddleware:
+    # ---------------------------------------------------------------------
+    # Local dev proxy. Point these placeholder hosts at your real ECC / HANA
+    # gateways. The "path" prefixes here must line up with the CONFIG block
+    # in webapp/controller/Main.controller.js (/ecc and /hana).
+    # ---------------------------------------------------------------------
+    - name: fiori-tools-proxy
+      afterMiddleware: compression
+      configuration:
+        ignoreCertError: true
+        backend:
+          - path: /ecc
+            url: https://REPLACE-ECC-HOST:44300   # Service 1 + (ECC source)
+          - path: /hana
+            url: https://REPLACE-HANA-HOST:44300   # Service 2 + Service 3 (HANA source/target)
+        ui5:
+          path:
+            - /resources
+            - /test-resources
+          url: https://ui5.sap.com
+    - name: fiori-tools-appreload
+      afterMiddleware: compression
+      configuration:
+        port: 35729
+        path: webapp
+        delay: 300

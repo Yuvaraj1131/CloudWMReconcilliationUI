@@ -1,0 +1,82 @@
+{
+  "_version": "1.59.0",
+  "sap.app": {
+    "id": "com.bluestonex.cloudwmreconcilliationui",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "1.0.0"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "tags": {
+      "keywords": ["LIPS", "Reconciliation", "ECC", "HANA"]
+    },
+    "dataSources": {},
+    "crossNavigation": {
+      "inbounds": {
+        "cloudwmreconcilliationui-display": {
+          "semanticObject": "LIPSReconciliation",
+          "action": "display",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "sap-icon://sales-document",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": false,
+    "dependencies": {
+      "minUI5Version": "1.120.0",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.ui.layout": {},
+        "sap.f": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "com.bluestonex.cloudwmreconcilliationui.i18n.i18n"
+        }
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "rootView": {
+      "viewName": "com.bluestonex.cloudwmreconcilliationui.view.Main",
+      "type": "XML",
+      "async": true,
+      "id": "Main"
+    }
+  }
+}
