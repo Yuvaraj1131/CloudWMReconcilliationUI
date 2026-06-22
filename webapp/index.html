@@ -4,25 +4,42 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>LIPS Reconciliation Monitor</title>
+	<title>Reconciliation Monitor</title>
+
+	<style>
+		html, body {
+			height: 100%;
+			margin: 0;
+		}
+	</style>
 
 	<script
 		id="sap-ui-bootstrap"
 		src="https://ui5.sap.com/resources/sap-ui-core.js"
 		data-sap-ui-theme="sap_horizon"
 		data-sap-ui-resourceroots='{"com.bluestonex.cloudwmreconcilliationui": "./"}'
-		data-sap-ui-oninit="module:sap/ui/core/ComponentSupport"
 		data-sap-ui-compatVersion="edge"
 		data-sap-ui-async="true"
 		data-sap-ui-frameOptions="trusted">
 	</script>
+
+	<script>
+		sap.ui.require([
+			"sap/ui/core/ComponentContainer",
+			"sap/ui/core/Core"
+		], function (ComponentContainer, Core) {
+			Core.ready(function () {
+				new ComponentContainer({
+					name: "com.bluestonex.cloudwmreconcilliationui",
+					manifest: true,
+					async: true,
+					height: "100%",
+					settings: { id: "cloudwmreconcilliationui" }
+				}).placeAt("content");
+			});
+		});
+	</script>
 </head>
 <body class="sapUiBody sapUiSizeCompact" id="content">
-	<div
-		data-sap-ui-component
-		data-name="com.bluestonex.cloudwmreconcilliationui"
-		data-id="container"
-		data-settings='{"id" : "cloudwmreconcilliationui"}'>
-	</div>
 </body>
 </html>
