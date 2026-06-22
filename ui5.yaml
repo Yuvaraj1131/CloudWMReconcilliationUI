@@ -14,19 +14,19 @@ framework:
 server:
   customMiddleware:
     # ---------------------------------------------------------------------
-    # Local dev proxy for BAS. Forwards /odata/* to the deployed CAP app via
-    # the CloudWM-CAP destination (create it in the BTP cockpit). This keeps
-    # the preview same-origin so the browser avoids CORS.
+    # Local dev proxy for BAS. Forwards /ReconcileService/* to the deployed CAP
+    # app via the CloudWMReconcilliation destination. This keeps the preview
+    # same-origin so the browser avoids CORS.
     # ---------------------------------------------------------------------
     - name: fiori-tools-proxy
       afterMiddleware: compression
       configuration:
         ignoreCertError: true
         backend:
-          # All 3 CAP OData V4 services live on ONE app, reached through the
-          # CloudWM-CAP destination. The proxy forwards /odata/* to it.
-          - path: /odata
-            destination: CloudWM-CAP
+          # All 3 services live under /ReconcileService on one CAP app, reached
+          # through the CloudWMReconcilliation destination.
+          - path: /ReconcileService
+            destination: CloudWMReconcilliation
         ui5:
           path:
             - /resources

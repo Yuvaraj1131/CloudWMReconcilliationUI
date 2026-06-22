@@ -13,27 +13,27 @@ Repository**, and talks to your already-deployed **CAP** app through a **destina
 | CF API endpoint | `https://api.cf.eu10-004.hana.ondemand.com` |
 | CAP app | `CloudWMReconciliation-srv` |
 | CAP base URL | `https://bsx-sysco-sandbox-f20-sandbox-f20-cloudwmreconciliation-srv.cfapps.eu10-004.hana.ondemand.com` |
-| Destination name | `CloudWM-CAP` |
+| Destination name | `CloudWMReconcilliation` |
 
 ## How the backend is reached
 
-- **BAS preview** — the `fiori-tools-proxy` in [`ui5.yaml`](ui5.yaml) forwards `/odata/*`
-  to the `CloudWM-CAP` destination (same-origin, no CORS).
+- **BAS preview** — the `fiori-tools-proxy` in [`ui5.yaml`](ui5.yaml) forwards
+  `/ReconcileService/*` to the `CloudWMReconcilliation` destination (same-origin, no CORS).
 - **Deployed** — the managed approuter applies the routes in [`xs-app.json`](xs-app.json),
-  forwarding `/odata/v4/*` to the same `CloudWM-CAP` destination.
+  forwarding `/ReconcileService/*` to the same `CloudWMReconcilliation` destination.
 
-The app calls **relative** URLs (`/odata/v4/<service>/<EntitySet>`), so the same code works
-in both contexts.
+The app calls **relative** URLs (`/ReconcileService/getECCDeliveryItems(...)`), so the same
+code works in both contexts.
 
 ---
 
-## Step 1 — Create the `CloudWM-CAP` destination
+## Step 1 — Create the `CloudWMReconcilliation` destination
 
 BTP cockpit → subaccount → **Connectivity → Destinations → New Destination**:
 
 | Field | Value |
 |---|---|
-| Name | `CloudWM-CAP` |
+| Name | `CloudWMReconcilliation` |
 | Type | `HTTP` |
 | URL | `https://bsx-sysco-sandbox-f20-sandbox-f20-cloudwmreconciliation-srv.cfapps.eu10-004.hana.ondemand.com` |
 | Proxy Type | `Internet` |
@@ -67,8 +67,8 @@ The reconciliation key is `Delivery_Delivery` + `Item`, and the tables bind the
 
 The only thing to confirm is **`SERVICE_BASE`** in
 [`webapp/controller/Main.controller.js`](webapp/controller/Main.controller.js): it must match
-the path where you found `$metadata`. CAP derives `/odata/v4/reconcile` from the service name
-`ReconcileService`; change that one constant if your path differs.
+the path where you found `$metadata`. It is `/ReconcileService` — confirmed against your
+working URL, so no change is needed.
 
 ## Step 3 — Preview in BAS
 
@@ -85,7 +85,7 @@ Pick a date → ECC + HANA load in parallel → open **Missing Items** → selec
 Let the Fiori tools generate the (managed-approuter) `mta.yaml` — do **not** hand-write it:
 
 > Command Palette (⇧⌘P) → **Fiori: Add Deployment Configuration** → **Cloud Foundry** →
-> **managed approuter** → select destination **`CloudWM-CAP`**.
+> **managed approuter** → select destination **`CloudWMReconcilliation`**.
 
 This creates `mta.yaml`, wires `xs-app.json`, and adds build scripts.
 

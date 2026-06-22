@@ -12,9 +12,9 @@ sap.ui.define([
 	//  CONFIG
 	//  ---------------------------------------------------------------------
 	//  Maps onto the deployed CAP "ReconcileService" (OData V4). All paths are
-	//  relative and reached through the CloudWM-CAP destination — the ui5.yaml
-	//  proxy (BAS preview) and the xs-app.json route (deployed) both forward
-	//  /odata/* there.
+	//  relative and reached through the CloudWMReconcilliation destination — the
+	//  ui5.yaml proxy (BAS preview) and the xs-app.json route (deployed) both
+	//  forward /ReconcileService/* there.
 	//
 	//  The three services are an OData V4 function pair + one action:
 	//    Service 1 (ECC)  : GET  getECCDeliveryItems(CreatedOn=<DateTimeOffset>)
@@ -23,17 +23,16 @@ sap.ui.define([
 	// =====================================================================
 	var CONFIG = {
 
-		// Base path of the deployed CAP service. VERIFY against the URL where you
-		// found $metadata — CAP derives "reconcile" from the service name
-		// "ReconcileService"; adjust this single constant if your path differs.
-		SERVICE_BASE: "/odata/v4/reconcile",
+		// Base path of the deployed CAP service (confirmed working). The service
+		// is exposed at /ReconcileService — NOT the OData V4 default /odata/v4/…
+		SERVICE_BASE: "/ReconcileService",
 
 		// Service 1 — ECC source. Unbound function, date passed as a parameter.
 		ECC: {
 			type: "function",
 			name: "getECCDeliveryItems",
 			dateParam: "CreatedOn",
-			dateLiteral: "datetimeoffset"   // -> 2026-06-22T00:00:00Z
+			dateLiteral: "date"   // service accepts a bare yyyy-MM-dd (verified working)
 		},
 
 		// Service 2 — HANA source. Unbound function, date passed as a parameter.
@@ -365,7 +364,7 @@ sap.ui.define([
 
 		/**
 		 * Build an unbound OData V4 function-call URL with an inline date parameter,
-		 * e.g. /odata/v4/reconcile/getHanaDeliveryItems(DeliveryDate=2026-06-22)
+		 * e.g. /ReconcileService/getHanaDeliveryItems(DeliveryDate=2026-06-22)
 		 */
 		_buildFunctionUrl: function (oCfg, sDate) {
 			var sLiteral = this._functionDateLiteral(sDate, oCfg.dateLiteral);
