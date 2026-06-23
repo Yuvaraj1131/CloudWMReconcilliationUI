@@ -39,13 +39,12 @@
 					</f:SimpleForm>
 				</Panel>
 
-				<!-- Empty state -->
-				<IllustratedMessage
-					visible="{= !${pick>/hasResult} }"
-					illustrationType="sapIllus-SearchEarth"
-					title="{i18n>pickEmptyTitle}"
-					description="{i18n>pickEmpty}"
-					class="sapUiMediumMarginTop" />
+				<!-- Empty state: animated warehouse-picker illustration -->
+				<VBox visible="{= !${pick>/hasResult} }" alignItems="Center" class="sapUiMediumMarginTop">
+					<Image src="{pick>/artUrl}" width="20rem" densityAware="false" />
+					<Title text="{i18n>pickEmptyTitle}" level="H2" class="sapUiSmallMarginTop" />
+					<Text text="{i18n>pickEmpty}" textAlign="Center" class="sapUiTinyMarginTop" />
+				</VBox>
 
 			</VBox>
 		</content>

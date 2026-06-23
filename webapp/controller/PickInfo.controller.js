@@ -21,7 +21,14 @@ sap.ui.define([
 	return Controller.extend("com.bluestonex.cloudwmreconcilliationui.controller.PickInfo", {
 
 		onInit: function () {
-			this.getView().setModel(new JSONModel({ pickNo: "", hasResult: false, result: {} }), "pick");
+			this.getView().setModel(new JSONModel({
+				pickNo: "",
+				hasResult: false,
+				result: {},
+				// resolve the SVG path via the module system so it works in BAS
+				// preview AND once deployed (no fragile relative paths)
+				artUrl: sap.ui.require.toUrl("com/bluestonex/cloudwmreconcilliationui/img/picker-animation.svg")
+			}), "pick");
 		},
 
 		onGetPick: function () {
