@@ -98,7 +98,7 @@ sap.ui.define([
 		FIELDS: ["Delivery_Delivery", "Item", "Material_Material", "DeliveryQuantity", "SalesUnit_UnitCode", "Plant", "StorageLocation"]
 	};
 
-	return Controller.extend("com.bluestonex.cloudwmreconcilliationui.controller.Main", {
+	return Controller.extend("com.bluestonex.cloudwmreconcilliationui.controller.Reconciliation", {
 
 		/* ============================================================= */
 		/*  LIFECYCLE                                                    */
@@ -109,6 +109,7 @@ sap.ui.define([
 			this.getView().setModel(new JSONModel({
 				busy: false,
 				dateText: this._today(),
+				masterData: "DELIVERY_ITEM",   // which table to reconcile (only this one is live)
 				selectedTab: "ECC",
 				eccCount: 0,
 				hanaCount: 0,
@@ -143,6 +144,11 @@ sap.ui.define([
 		onLoad: function () {
 			var oUi = this.getView().getModel("ui");
 			var sDate = oUi.getProperty("/dateText");
+
+			// Only the Delivery Item table is wired to services for now.
+			if (oUi.getProperty("/masterData") !== "DELIVERY_ITEM") {
+				return;
+			}
 
 			if (!sDate) {
 				MessageToast.show(this._t("pickDateFirst"));
@@ -183,6 +189,23 @@ sap.ui.define([
 
 		onTabSelect: function (oEvent) {
 			this.getView().getModel("ui").setProperty("/selectedTab", oEvent.getParameter("key"));
+		},
+
+		/**
+		 * Master Data dropdown changed. Only "Delivery Item" is wired to services;
+		 * the others show a "coming soon" placeholder, so clear any stale data.
+		 */
+		onMasterDataChange: function () {
+			var oUi = this.getView().getModel("ui");
+			if (oUi.getProperty("/masterData") !== "DELIVERY_ITEM") {
+				this.getView().getModel("ecc").setProperty("/items", []);
+				this.getView().getModel("hana").setProperty("/items", []);
+				this.getView().getModel("missing").setProperty("/items", []);
+				oUi.setProperty("/eccCount", 0);
+				oUi.setProperty("/hanaCount", 0);
+				oUi.setProperty("/missingCount", 0);
+				oUi.setProperty("/selectedCount", 0);
+			}
 		},
 
 		/**

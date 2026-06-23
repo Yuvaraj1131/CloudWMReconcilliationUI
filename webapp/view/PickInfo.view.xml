@@ -1,0 +1,54 @@
+<mvc:View
+	controllerName="com.bluestonex.cloudwmreconcilliationui.controller.PickInfo"
+	xmlns="sap.m"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns:f="sap.ui.layout.form"
+	displayBlock="true"
+	height="100%">
+
+	<Page title="{i18n>pickInfoTitle}" class="sapUiContentPadding">
+		<content>
+			<VBox class="sapUiSmallMargin">
+
+				<!-- Lookup -->
+				<Panel headerText="{i18n>pickLookupHeader}" width="auto">
+					<HBox alignItems="End" wrap="Wrap" class="sapUiSmallMargin">
+						<VBox class="sapUiSmallMarginEnd">
+							<Label text="{i18n>pickNoLabel}" labelFor="pickInput" />
+							<Input id="pickInput" value="{pick>/pickNo}" placeholder="{i18n>pickNoPlaceholder}" submit=".onGetPick" width="18rem" />
+						</VBox>
+						<Button text="{i18n>btnGetPick}" type="Emphasized" icon="sap-icon://search" press=".onGetPick" />
+					</HBox>
+				</Panel>
+
+				<!-- Result -->
+				<Panel headerText="{i18n>pickResultTitle}" width="auto" visible="{pick>/hasResult}" class="sapUiSmallMarginTop">
+					<f:SimpleForm editable="false" layout="ResponsiveGridLayout" labelSpanM="3" columnsM="2">
+						<Label text="{i18n>pickNoLabel}" />
+						<Text text="{pick>/result/PickNo}" />
+						<Label text="{i18n>pickPicker}" />
+						<Text text="{pick>/result/Picker}" />
+						<Label text="{i18n>pickTime}" />
+						<Text text="{pick>/result/Time}" />
+						<Label text="{i18n>pickStatus}" />
+						<ObjectStatus text="{pick>/result/Status}" state="{pick>/result/StatusState}" />
+						<Label text="{i18n>pickWarehouse}" />
+						<Text text="{pick>/result/Warehouse}" />
+						<Label text="{i18n>pickItems}" />
+						<Text text="{pick>/result/Items}" />
+					</f:SimpleForm>
+				</Panel>
+
+				<!-- Empty state -->
+				<IllustratedMessage
+					visible="{= !${pick>/hasResult} }"
+					illustrationType="sapIllus-SearchEarth"
+					title="{i18n>pickEmptyTitle}"
+					description="{i18n>pickEmpty}"
+					class="sapUiMediumMarginTop" />
+
+			</VBox>
+		</content>
+	</Page>
+
+</mvc:View>

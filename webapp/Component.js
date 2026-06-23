@@ -22,6 +22,9 @@ sap.ui.define([
 
 			// set the device model (handy for responsive bindings in the view)
 			this.setModel(models.createDeviceModel(), "device");
+
+			// start the router so the shell can navigate between apps
+			this.getRouter().initialize();
 		}
 	});
 });

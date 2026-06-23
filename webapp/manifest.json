@@ -50,7 +50,8 @@
         "sap.m": {},
         "sap.ui.core": {},
         "sap.ui.layout": {},
-        "sap.f": {}
+        "sap.f": {},
+        "sap.tnt": {}
       }
     },
     "contentDensities": {
@@ -73,10 +74,43 @@
       ]
     },
     "rootView": {
-      "viewName": "com.bluestonex.cloudwmreconcilliationui.view.Main",
+      "viewName": "com.bluestonex.cloudwmreconcilliationui.view.App",
       "type": "XML",
       "async": true,
-      "id": "Main"
+      "id": "App"
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "viewType": "XML",
+        "viewPath": "com.bluestonex.cloudwmreconcilliationui.view",
+        "controlId": "appContent",
+        "controlAggregation": "pages",
+        "transition": "slide",
+        "async": true
+      },
+      "routes": [
+        {
+          "name": "reconciliation",
+          "pattern": "",
+          "target": "reconciliation"
+        },
+        {
+          "name": "pickInfo",
+          "pattern": "pick-info",
+          "target": "pickInfo"
+        }
+      ],
+      "targets": {
+        "reconciliation": {
+          "viewId": "reconciliation",
+          "viewName": "Reconciliation"
+        },
+        "pickInfo": {
+          "viewId": "pickInfo",
+          "viewName": "PickInfo"
+        }
+      }
     }
   }
 }

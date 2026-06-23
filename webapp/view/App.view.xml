@@ -1,0 +1,37 @@
+<mvc:View
+	controllerName="com.bluestonex.cloudwmreconcilliationui.controller.App"
+	xmlns="sap.m"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns:tnt="sap.tnt"
+	displayBlock="true"
+	height="100%">
+
+	<tnt:ToolPage id="toolPage">
+
+		<!-- Top bar: menu toggle + hub title -->
+		<tnt:header>
+			<tnt:ToolHeader>
+				<Button icon="sap-icon://menu2" type="Transparent" press=".onMenuToggle" tooltip="{i18n>navToggle}" />
+				<Title text="{i18n>shellTitle}" level="H1" wrapping="false" class="sapUiSmallMarginBegin" />
+				<ToolbarSpacer />
+			</tnt:ToolHeader>
+		</tnt:header>
+
+		<!-- Left rail: one entry per app -->
+		<tnt:sideContent>
+			<tnt:SideNavigation id="sideNav" itemSelect=".onNavItemSelect" selectedKey="reconciliation">
+				<tnt:NavigationList>
+					<tnt:NavigationListItem text="{i18n>navReconciliation}" key="reconciliation" icon="sap-icon://compare-2" />
+					<tnt:NavigationListItem text="{i18n>navPickInfo}" key="pickInfo" icon="sap-icon://search" />
+				</tnt:NavigationList>
+			</tnt:SideNavigation>
+		</tnt:sideContent>
+
+		<!-- The selected app renders here (router targets the NavContainer) -->
+		<tnt:mainContents>
+			<NavContainer id="appContent" />
+		</tnt:mainContents>
+
+	</tnt:ToolPage>
+
+</mvc:View>

@@ -1,0 +1,215 @@
+<mvc:View
+	controllerName="com.bluestonex.cloudwmreconcilliationui.controller.Reconciliation"
+	xmlns="sap.m"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns:core="sap.ui.core"
+	xmlns:f="sap.f"
+	displayBlock="true"
+	height="100%">
+
+	<f:DynamicPage id="page" fitContent="true" showFooter="{= ${ui>/selectedTab} === 'MISSING' &amp;&amp; ${ui>/masterData} === 'DELIVERY_ITEM' }" busy="{ui>/busy}" busyIndicatorDelay="0">
+
+		<!-- ============================ TITLE ============================ -->
+		<f:title>
+			<f:DynamicPageTitle>
+				<f:heading>
+					<Title text="{i18n>appTitle}" />
+				</f:heading>
+				<f:actions>
+					<ObjectStatus text="{i18n>statusEcc}: {ui>/eccCount}" state="Information" class="sapUiTinyMarginEnd" />
+					<ObjectStatus text="{i18n>statusHana}: {ui>/hanaCount}" state="Information" class="sapUiTinyMarginEnd" />
+					<ObjectStatus text="{i18n>statusMissing}: {ui>/missingCount}" state="{= ${ui>/missingCount} > 0 ? 'Error' : 'Success' }" />
+				</f:actions>
+			</f:DynamicPageTitle>
+		</f:title>
+
+		<!-- ====================== FILTER BAR (always visible) ====================== -->
+		<f:header>
+			<f:DynamicPageHeader pinnable="true">
+				<f:content>
+					<!-- plain Toolbar (not OverflowToolbar) so controls never hide in a "..." overflow menu -->
+					<Toolbar>
+						<Label text="{i18n>masterDataLabel}" labelFor="msMaster" />
+						<Select id="msMaster" selectedKey="{ui>/masterData}" change=".onMasterDataChange" class="sapUiSmallMarginEnd">
+							<core:Item key="DELIVERY_ITEM" text="{i18n>mdDeliveryItem}" />
+							<core:Item key="DELIVERY_HEADER" text="{i18n>mdDeliveryHeader}" />
+							<core:Item key="SALES_HEADER" text="{i18n>mdSalesHeader}" />
+							<core:Item key="SALES_ITEM" text="{i18n>mdSalesItem}" />
+						</Select>
+						<ToolbarSeparator />
+						<Label text="{i18n>filterDateLabel}" labelFor="dpDate" />
+						<DatePicker
+							id="dpDate"
+							value="{ui>/dateText}"
+							valueFormat="yyyy-MM-dd"
+							displayFormat="long"
+							change=".onDateChange"
+							enabled="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"
+							class="sapUiSmallMarginEnd" />
+						<Button
+							id="btnRefresh"
+							text="{i18n>btnLoad}"
+							type="Emphasized"
+							icon="sap-icon://synchronize"
+							enabled="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"
+							press=".onLoad" />
+						<ToolbarSpacer />
+						<Text text="{i18n>lastRefreshed}: {ui>/lastRefreshed}" />
+					</Toolbar>
+				</f:content>
+			</f:DynamicPageHeader>
+		</f:header>
+
+		<!-- ============================ CONTENT ============================ -->
+		<f:content>
+			<VBox fitContainer="true">
+
+				<!-- Placeholder for master-data types that aren't wired up yet -->
+				<IllustratedMessage
+					visible="{= ${ui>/masterData} !== 'DELIVERY_ITEM' }"
+					illustrationType="sapIllus-NoTasks"
+					title="{i18n>comingSoonTitle}"
+					description="{i18n>comingSoonText}"
+					class="sapUiMediumMarginTop" />
+
+				<!-- The live Delivery Item reconciliation -->
+				<IconTabBar
+					id="tabBar"
+					visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"
+					selectedKey="{ui>/selectedTab}"
+					select=".onTabSelect"
+					expandable="false"
+					stretchContentHeight="true"
+					class="sapUiResponsiveContentPadding">
+					<layoutData>
+						<FlexItemData growFactor="1" />
+					</layoutData>
+					<items>
+
+						<!-- ===================== ECC DATA ===================== -->
+						<IconTabFilter id="tabEcc" key="ECC" icon="sap-icon://source-code" text="{i18n>tabEcc}" count="{ui>/eccCount}">
+							<Table id="tblEcc" items="{ecc>/items}" growing="true" growingThreshold="50" sticky="ColumnHeaders,HeaderToolbar" noDataText="{i18n>noDataEcc}">
+								<headerToolbar>
+									<OverflowToolbar>
+										<Title text="{i18n>tabEcc}" level="H2" />
+										<ToolbarSpacer />
+										<SearchField width="18rem" search=".onSearch" placeholder="{i18n>searchPlaceholder}" />
+									</OverflowToolbar>
+								</headerToolbar>
+								<columns>
+									<Column><Text text="{i18n>colVbeln}" /></Column>
+									<Column><Text text="{i18n>colPosnr}" /></Column>
+									<Column><Text text="{i18n>colMatnr}" /></Column>
+									<Column hAlign="End"><Text text="{i18n>colLfimg}" /></Column>
+									<Column><Text text="{i18n>colVrkme}" /></Column>
+									<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>colWerks}" /></Column>
+									<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>colLgort}" /></Column>
+								</columns>
+								<items>
+									<ColumnListItem>
+										<cells>
+											<ObjectIdentifier title="{ecc>Delivery_Delivery}" />
+											<Text text="{ecc>Item}" />
+											<Text text="{ecc>Material_Material}" />
+											<ObjectNumber number="{ecc>DeliveryQuantity}" unit="{ecc>SalesUnit_UnitCode}" />
+											<Text text="{ecc>SalesUnit_UnitCode}" />
+											<Text text="{ecc>Plant}" />
+											<Text text="{ecc>StorageLocation}" />
+										</cells>
+									</ColumnListItem>
+								</items>
+							</Table>
+						</IconTabFilter>
+
+						<!-- ===================== HANA DATA ===================== -->
+						<IconTabFilter id="tabHana" key="HANA" icon="sap-icon://database" text="{i18n>tabHana}" count="{ui>/hanaCount}">
+							<Table id="tblHana" items="{hana>/items}" growing="true" growingThreshold="50" sticky="ColumnHeaders,HeaderToolbar" noDataText="{i18n>noDataHana}">
+								<headerToolbar>
+									<OverflowToolbar>
+										<Title text="{i18n>tabHana}" level="H2" />
+										<ToolbarSpacer />
+										<SearchField width="18rem" search=".onSearch" placeholder="{i18n>searchPlaceholder}" />
+									</OverflowToolbar>
+								</headerToolbar>
+								<columns>
+									<Column><Text text="{i18n>colVbeln}" /></Column>
+									<Column><Text text="{i18n>colPosnr}" /></Column>
+									<Column><Text text="{i18n>colMatnr}" /></Column>
+									<Column hAlign="End"><Text text="{i18n>colLfimg}" /></Column>
+									<Column><Text text="{i18n>colVrkme}" /></Column>
+									<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>colWerks}" /></Column>
+									<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>colLgort}" /></Column>
+								</columns>
+								<items>
+									<ColumnListItem>
+										<cells>
+											<ObjectIdentifier title="{hana>Delivery_Delivery}" />
+											<Text text="{hana>Item}" />
+											<Text text="{hana>Material_Material}" />
+											<ObjectNumber number="{hana>DeliveryQuantity}" unit="{hana>SalesUnit_UnitCode}" />
+											<Text text="{hana>SalesUnit_UnitCode}" />
+											<Text text="{hana>Plant}" />
+											<Text text="{hana>StorageLocation}" />
+										</cells>
+									</ColumnListItem>
+								</items>
+							</Table>
+						</IconTabFilter>
+
+						<!-- ===================== MISSING ITEMS ===================== -->
+						<IconTabFilter id="tabMissing" key="MISSING" icon="sap-icon://alert" iconColor="{= ${ui>/missingCount} > 0 ? 'Negative' : 'Default' }" text="{i18n>tabMissing}" count="{ui>/missingCount}">
+							<Table id="tblMissing" mode="MultiSelect" items="{missing>/items}" growing="true" growingThreshold="50" sticky="ColumnHeaders,HeaderToolbar" selectionChange=".onMissingSelectionChange" updateFinished=".onMissingTableUpdate" noDataText="{i18n>noDataMissing}">
+								<headerToolbar>
+									<OverflowToolbar>
+										<Title text="{i18n>tabMissing}" level="H2" />
+										<ToolbarSpacer />
+										<Text text="{i18n>selectedCount}: {ui>/selectedCount}" class="sapUiTinyMarginEnd" />
+									</OverflowToolbar>
+								</headerToolbar>
+								<columns>
+									<Column><Text text="{i18n>colVbeln}" /></Column>
+									<Column><Text text="{i18n>colPosnr}" /></Column>
+									<Column><Text text="{i18n>colMatnr}" /></Column>
+									<Column hAlign="End"><Text text="{i18n>colLfimg}" /></Column>
+									<Column><Text text="{i18n>colVrkme}" /></Column>
+									<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>colWerks}" /></Column>
+									<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>colLgort}" /></Column>
+									<Column hAlign="Center"><Text text="{i18n>colStatus}" /></Column>
+								</columns>
+								<items>
+									<ColumnListItem highlight="{= ${missing>posted} ? 'Success' : (${missing>postError} ? 'Error' : 'None') }">
+										<cells>
+											<ObjectIdentifier title="{missing>Delivery_Delivery}" />
+											<Text text="{missing>Item}" />
+											<Text text="{missing>Material_Material}" />
+											<ObjectNumber number="{missing>DeliveryQuantity}" unit="{missing>SalesUnit_UnitCode}" />
+											<Text text="{missing>SalesUnit_UnitCode}" />
+											<Text text="{missing>Plant}" />
+											<Text text="{missing>StorageLocation}" />
+											<ObjectStatus
+												text="{= ${missing>posted} ? ${i18n>statePosted} : (${missing>postError} ? ${i18n>stateFailed} : ${i18n>statePending}) }"
+												state="{= ${missing>posted} ? 'Success' : (${missing>postError} ? 'Error' : 'Warning') }"
+												icon="{= ${missing>posted} ? 'sap-icon://accept' : (${missing>postError} ? 'sap-icon://error' : 'sap-icon://pending') }" />
+										</cells>
+									</ColumnListItem>
+								</items>
+							</Table>
+						</IconTabFilter>
+
+					</items>
+				</IconTabBar>
+			</VBox>
+		</f:content>
+
+		<!-- ====================== FOOTER (Missing tab only) ====================== -->
+		<f:footer>
+			<OverflowToolbar>
+				<ToolbarSpacer />
+				<Button id="btnSelectAll" text="{i18n>btnSelectAllPending}" icon="sap-icon://multi-select" press=".onSelectAllPending" />
+				<Button id="btnPost" text="{i18n>btnPost} ({ui>/selectedCount})" type="Emphasized" icon="sap-icon://upload-to-cloud" enabled="{= ${ui>/selectedCount} > 0 }" press=".onPostSelected" />
+			</OverflowToolbar>
+		</f:footer>
+
+	</f:DynamicPage>
+
+</mvc:View>
