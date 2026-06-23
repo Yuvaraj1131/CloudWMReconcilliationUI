@@ -19,6 +19,7 @@
 					<ObjectStatus text="{i18n>statusEcc}: {ui>/eccCount}" state="Information" class="sapUiTinyMarginEnd" />
 					<ObjectStatus text="{i18n>statusHana}: {ui>/hanaCount}" state="Information" class="sapUiTinyMarginEnd" />
 					<ObjectStatus text="{i18n>statusMissing}: {ui>/missingCount}" state="{= ${ui>/missingCount} > 0 ? 'Error' : 'Success' }" />
+					<Text text="{i18n>lastRefreshed}: {ui>/lastRefreshed}" class="sapUiSmallMarginBegin" />
 				</f:actions>
 			</f:DynamicPageTitle>
 		</f:title>
@@ -30,7 +31,7 @@
 					<!-- plain Toolbar (not OverflowToolbar) so controls never hide in a "..." overflow menu -->
 					<Toolbar>
 						<Label text="{i18n>masterDataLabel}" labelFor="msMaster" />
-						<Select id="msMaster" selectedKey="{ui>/masterData}" change=".onMasterDataChange" class="sapUiSmallMarginEnd">
+						<Select id="msMaster" selectedKey="{ui>/masterData}" change=".onMasterDataChange" width="15rem" autoAdjustWidth="false" class="sapUiSmallMarginEnd">
 							<core:Item key="DELIVERY_ITEM" text="{i18n>mdDeliveryItem}" />
 							<core:Item key="DELIVERY_HEADER" text="{i18n>mdDeliveryHeader}" />
 							<core:Item key="SALES_HEADER" text="{i18n>mdSalesHeader}" />
@@ -45,6 +46,7 @@
 							displayFormat="long"
 							change=".onDateChange"
 							enabled="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"
+							width="13rem"
 							class="sapUiSmallMarginEnd" />
 						<Button
 							id="btnRefresh"
@@ -54,7 +56,6 @@
 							enabled="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"
 							press=".onLoad" />
 						<ToolbarSpacer />
-						<Text text="{i18n>lastRefreshed}: {ui>/lastRefreshed}" />
 					</Toolbar>
 				</f:content>
 			</f:DynamicPageHeader>
