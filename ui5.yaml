@@ -15,7 +15,7 @@ framework:
 server:
   customMiddleware:
     # ---------------------------------------------------------------------
-    # Local dev proxy for BAS. Forwards /ReconcileService/* to the deployed CAP
+    # Local dev proxy for BAS. Forwards /ReconcileServices/* to the deployed CAP
     # app via the CloudWMReconcilliation destination. This keeps the preview
     # same-origin so the browser avoids CORS.
     # ---------------------------------------------------------------------
@@ -24,9 +24,9 @@ server:
       configuration:
         ignoreCertError: true
         backend:
-          # All 3 services live under /ReconcileService on one CAP app, reached
-          # through the CloudWMReconcilliation destination.
-          - path: /ReconcileService
+          # Reconciliation + Pick Info both live under /ReconcileServices on one
+          # CAP app (HANA-backed), reached through the CloudWMReconcilliation destination.
+          - path: /ReconcileServices
             destination: CloudWMReconcilliation
         ui5:
           path:

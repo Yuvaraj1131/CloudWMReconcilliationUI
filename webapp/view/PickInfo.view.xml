@@ -2,7 +2,7 @@
 	controllerName="com.bluestonex.cloudwmreconcilliationui.controller.PickInfo"
 	xmlns="sap.m"
 	xmlns:mvc="sap.ui.core.mvc"
-	xmlns:f="sap.ui.layout.form"
+	xmlns:core="sap.ui.core"
 	displayBlock="true"
 	height="100%">
 
@@ -10,40 +10,107 @@
 		<content>
 			<VBox class="sapUiSmallMargin">
 
-				<!-- Lookup -->
+				<!-- ===================== LOOKUP ===================== -->
 				<Panel headerText="{i18n>pickLookupHeader}" width="auto">
 					<HBox alignItems="End" wrap="Wrap" class="sapUiSmallMargin">
 						<VBox class="sapUiSmallMarginEnd">
-							<Label text="{i18n>pickNoLabel}" labelFor="pickInput" />
-							<Input id="pickInput" value="{pick>/pickNo}" placeholder="{i18n>pickNoPlaceholder}" submit=".onGetPick" width="18rem" />
+							<Label text="{i18n>pickModeLabel}" labelFor="pickMode" />
+							<Select id="pickMode" selectedKey="{pick>/mode}" change=".onModeChange" width="16rem">
+								<core:Item key="TASK" text="{i18n>pickModeTask}" />
+								<core:Item key="LOGS" text="{i18n>pickModeLogs}" />
+							</Select>
+						</VBox>
+						<VBox class="sapUiSmallMarginEnd">
+							<Label text="{= ${pick>/mode} === 'LOGS' ? ${i18n>pickUserLabel} : ${i18n>pickNoLabel} }" labelFor="pickInput" />
+							<Input
+								id="pickInput"
+								value="{pick>/query}"
+								placeholder="{= ${pick>/mode} === 'LOGS' ? ${i18n>pickUserPlaceholder} : ${i18n>pickNoPlaceholder} }"
+								submit=".onGetPick"
+								width="20rem" />
 						</VBox>
 						<Button text="{i18n>btnGetPick}" type="Emphasized" icon="sap-icon://search" press=".onGetPick" />
 					</HBox>
 				</Panel>
 
-				<!-- Result -->
-				<Panel headerText="{i18n>pickResultTitle}" width="auto" visible="{pick>/hasResult}" class="sapUiSmallMarginTop">
-					<f:SimpleForm editable="false" layout="ResponsiveGridLayout" labelSpanM="3" columnsM="2">
-						<Label text="{i18n>pickNoLabel}" />
-						<Text text="{pick>/result/PickNo}" />
-						<Label text="{i18n>pickPicker}" />
-						<Text text="{pick>/result/Picker}" />
-						<Label text="{i18n>pickTime}" />
-						<Text text="{pick>/result/Time}" />
-						<Label text="{i18n>pickStatus}" />
-						<ObjectStatus text="{pick>/result/Status}" state="{pick>/result/StatusState}" />
-						<Label text="{i18n>pickWarehouse}" />
-						<Text text="{pick>/result/Warehouse}" />
-						<Label text="{i18n>pickItems}" />
-						<Text text="{pick>/result/Items}" />
-					</f:SimpleForm>
-				</Panel>
+				<!-- ===================== RESULTS ===================== -->
+				<VBox busy="{pick>/busy}" busyIndicatorDelay="0">
 
-				<!-- Empty state: animated warehouse-picker illustration -->
-				<VBox visible="{= !${pick>/hasResult} }" alignItems="Center" class="sapUiMediumMarginTop">
-					<Image src="{pick>/artUrl}" width="20rem" densityAware="false" />
-					<Title text="{i18n>pickEmptyTitle}" level="H2" class="sapUiSmallMarginTop" />
-					<Text text="{i18n>pickEmpty}" textAlign="Center" class="sapUiTinyMarginTop" />
+					<!-- Pick Task header -->
+					<Panel headerText="{i18n>pickTaskResult}" width="auto" visible="{pick>/hasTask}" class="sapUiSmallMarginTop">
+						<ObjectHeader
+							responsive="true"
+							title="{pick>/task/ID}"
+							number="{pick>/task/TOTALCUBE}"
+							numberUnit="m³">
+							<statuses>
+								<ObjectStatus
+									title="{i18n>pickFldStatus}"
+									text="{pick>/task/STATUS_ID}"
+									state="{= ${pick>/task/STATUS_ID} === 'NOTRELEASED' ? 'Warning' : 'Success' }" />
+							</statuses>
+							<attributes>
+								<ObjectAttribute title="{i18n>pickFldPlant}" text="{pick>/task/PLANT_PLANT}" />
+								<ObjectAttribute title="{i18n>pickFldRoute}" text="{pick>/task/ROUTE}" />
+								<ObjectAttribute title="{i18n>pickFldPlatform}" text="{pick>/task/DELIVERYPLATFORM_ROUTE}" />
+								<ObjectAttribute title="{i18n>pickFldDelivery}" text="{pick>/task/DELIVERYDATE}" />
+								<ObjectAttribute title="{i18n>pickFldType}" text="{pick>/task/PICKTYPE_ID}" />
+								<ObjectAttribute title="{i18n>pickFldTemp}" text="{pick>/task/TEMPERATURE_ID}" />
+								<ObjectAttribute title="{i18n>pickFldWeight}" text="{pick>/task/NOMINALWEIGHT}" />
+								<ObjectAttribute title="{i18n>pickFldSeq}" text="{pick>/task/SEQUENCE}" />
+								<ObjectAttribute title="{i18n>pickFldPicker}" text="{= ${pick>/task/PICKERUSERID} || '—' }" />
+								<ObjectAttribute title="{i18n>pickFldPrepGroup}" text="{pick>/task/PREPARATIONGROUP}" />
+								<ObjectAttribute title="{i18n>pickFldCreated}" text="{pick>/task/CREATEDBY}" />
+							</attributes>
+						</ObjectHeader>
+					</Panel>
+
+					<!-- Picker activity log -->
+					<Panel headerText="{i18n>pickLogsResult}" width="auto" visible="{pick>/hasLogs}" class="sapUiSmallMarginTop">
+						<Toolbar>
+							<ObjectStatus text="{i18n>pickUserLabel}: {pick>/summary/user}" />
+							<ToolbarSpacer />
+							<ObjectStatus text="{i18n>pickEvents}: {pick>/summary/events}" state="Information" class="sapUiTinyMarginEnd" />
+							<ObjectStatus text="{i18n>pickTasks}: {pick>/summary/tasks}" state="Information" />
+						</Toolbar>
+						<Table id="logsTable" items="{pick>/logs}" growing="true" growingThreshold="100" sticky="ColumnHeaders,HeaderToolbar" noDataText="{i18n>pickNoResult}">
+							<headerToolbar>
+								<OverflowToolbar>
+									<Title text="{i18n>pickLogsResult}" level="H3" />
+									<ToolbarSpacer />
+									<SearchField width="18rem" search=".onLogSearch" placeholder="{i18n>pickLogSearch}" />
+								</OverflowToolbar>
+							</headerToolbar>
+							<columns>
+								<Column><Text text="{i18n>pickColTime}" /></Column>
+								<Column><Text text="{i18n>pickColTask}" /></Column>
+								<Column><Text text="{i18n>pickColEvent}" /></Column>
+								<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>pickColItem}" /></Column>
+								<Column hAlign="End"><Text text="{i18n>pickColQty}" /></Column>
+								<Column hAlign="Center" minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>pickColLevel}" /></Column>
+							</columns>
+							<items>
+								<ColumnListItem>
+									<cells>
+										<Text text="{pick>_ts}" />
+										<Text text="{pick>PICKTASK_ID}" />
+										<Text text="{pick>_event}" />
+										<Text text="{pick>ITEM_ID}" />
+										<ObjectNumber number="{pick>QUANTITY}" />
+										<Text text="{pick>_level}" />
+									</cells>
+								</ColumnListItem>
+							</items>
+						</Table>
+					</Panel>
+
+					<!-- Empty state: animated warehouse-picker illustration -->
+					<VBox visible="{= !${pick>/hasTask} &amp;&amp; !${pick>/hasLogs} }" alignItems="Center" class="sapUiMediumMarginTop">
+						<Image src="{pick>/artUrl}" width="20rem" densityAware="false" />
+						<Title text="{i18n>pickEmptyTitle}" level="H2" class="sapUiSmallMarginTop" />
+						<Text text="{i18n>pickEmpty}" textAlign="Center" class="sapUiTinyMarginTop" />
+					</VBox>
+
 				</VBox>
 
 			</VBox>

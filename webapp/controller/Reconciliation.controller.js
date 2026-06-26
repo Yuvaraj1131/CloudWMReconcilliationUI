@@ -62,9 +62,9 @@ sap.ui.define([
 
 	var CONFIG = {
 
-		// Base path of the deployed CAP service (confirmed working). The service
-		// is exposed at /ReconcileService — NOT the OData V4 default /odata/v4/…
-		SERVICE_BASE: "/ReconcileService",
+		// Base path of the deployed CAP service. The service is exposed at
+		// /ReconcileServices (note the trailing "s") — NOT the V4 default /odata/v4/…
+		SERVICE_BASE: "/ReconcileServices",
 
 		// Service 1 — ECC source. Unbound function, date passed as a parameter.
 		ECC: {

@@ -3,9 +3,9 @@
   "authenticationMethod": "route",
   "routes": [
     {
-      "comment": "All ReconcileService calls (ECC fetch, HANA fetch, HANA write) via the CloudWMReconcilliation destination. CSRF is handled by CAP itself, so the approuter does not double-guard it.",
-      "source": "^/ReconcileService/(.*)$",
-      "target": "/ReconcileService/$1",
+      "comment": "All ReconcileServices calls (reconciliation + pick info) via the CloudWMReconcilliation destination. CSRF is handled by CAP itself, so the approuter does not double-guard it.",
+      "source": "^/ReconcileServices/(.*)$",
+      "target": "/ReconcileServices/$1",
       "destination": "CloudWMReconcilliation",
       "authenticationType": "xsuaa",
       "csrfProtection": false
