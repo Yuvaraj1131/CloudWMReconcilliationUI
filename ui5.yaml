@@ -16,19 +16,22 @@ framework:
 server:
   customMiddleware:
     # ---------------------------------------------------------------------
-    # Local dev proxy for BAS. Forwards /ReconcileServices/* to the deployed CAP
-    # app via the CloudWMReconcilliation destination. This keeps the preview
-    # same-origin so the browser avoids CORS.
+    # Dev proxy for BAS preview. Forwards /ReconcileServices/* to the CAP.
+    #
+    #  - LOCAL CAP (cds watch in this workspace):  url: http://localhost:4004   <-- active
+    #  - DEPLOYED CAP (via BTP destination):       destination: CloudWMReconcilliation
+    #
+    # Swap the two lines below to switch. Deployment itself is unaffected — it
+    # uses the destination route in xs-app.json, not this file.
     # ---------------------------------------------------------------------
     - name: fiori-tools-proxy
       afterMiddleware: compression
       configuration:
         ignoreCertError: true
         backend:
-          # Reconciliation + Pick Info both live under /ReconcileServices on one
-          # CAP app (HANA-backed), reached through the CloudWMReconcilliation destination.
+          # Local CAP running on port 4004 (same workspace as the UI dev server).
           - path: /ReconcileServices
-            destination: CloudWMReconcilliation
+            url: http://localhost:4004
         ui5:
           path:
             - /resources
