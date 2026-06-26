@@ -1,0 +1,8 @@
+{
+  "xsappname": "cloudwmreconcilliationui",
+  "tenant-mode": "dedicated",
+  "description": "Security profile for Cloud WM Utilities",
+  "scopes": [],
+  "attributes": [],
+  "role-templates": []
+}
