@@ -29,6 +29,10 @@
 								submit=".onGetPick"
 								width="20rem" />
 						</VBox>
+						<VBox class="sapUiSmallMarginEnd" visible="{= ${pick>/mode} === 'LOGS' }">
+							<Label text="{i18n>pickDateLabel}" labelFor="pickDate" />
+							<DatePicker id="pickDate" value="{pick>/date}" valueFormat="yyyy-MM-dd" displayFormat="long" width="13rem" />
+						</VBox>
 						<Button text="{i18n>btnGetPick}" type="Emphasized" icon="sap-icon://search" press=".onGetPick" />
 					</HBox>
 				</Panel>
@@ -36,9 +40,10 @@
 				<!-- ===================== RESULTS ===================== -->
 				<VBox busy="{pick>/busy}" busyIndicatorDelay="0">
 
-					<!-- Pick Task header -->
+					<!-- Pick Task header (bold, colour-coded status) -->
 					<Panel headerText="{i18n>pickTaskResult}" width="auto" visible="{pick>/hasTask}" class="sapUiSmallMarginTop">
 						<ObjectHeader
+							icon="sap-icon://cart"
 							responsive="true"
 							title="{pick>/task/ID}"
 							number="{pick>/task/TOTALCUBE}"
@@ -47,7 +52,14 @@
 								<ObjectStatus
 									title="{i18n>pickFldStatus}"
 									text="{pick>/task/STATUS_ID}"
-									state="{= ${pick>/task/STATUS_ID} === 'NOTRELEASED' ? 'Warning' : 'Success' }" />
+									state="{pick>/task/_statusState}"
+									inverted="true" />
+								<ObjectStatus
+									title="{i18n>pickFldTemp}"
+									text="{pick>/task/TEMPERATURE_ID}"
+									icon="sap-icon://temperature"
+									state="Information"
+									inverted="true" />
 							</statuses>
 							<attributes>
 								<ObjectAttribute title="{i18n>pickFldPlant}" text="{pick>/task/PLANT_PLANT}" />
@@ -55,25 +67,31 @@
 								<ObjectAttribute title="{i18n>pickFldPlatform}" text="{pick>/task/DELIVERYPLATFORM_ROUTE}" />
 								<ObjectAttribute title="{i18n>pickFldDelivery}" text="{pick>/task/DELIVERYDATE}" />
 								<ObjectAttribute title="{i18n>pickFldType}" text="{pick>/task/PICKTYPE_ID}" />
-								<ObjectAttribute title="{i18n>pickFldTemp}" text="{pick>/task/TEMPERATURE_ID}" />
 								<ObjectAttribute title="{i18n>pickFldWeight}" text="{pick>/task/NOMINALWEIGHT}" />
 								<ObjectAttribute title="{i18n>pickFldSeq}" text="{pick>/task/SEQUENCE}" />
 								<ObjectAttribute title="{i18n>pickFldPicker}" text="{= ${pick>/task/PICKERUSERID} || '—' }" />
-								<ObjectAttribute title="{i18n>pickFldPrepGroup}" text="{pick>/task/PREPARATIONGROUP}" />
+								<ObjectAttribute title="{i18n>pickFldPrepGroup}" text="{= ${pick>/task/PREPARATIONGROUP} || '—' }" />
 								<ObjectAttribute title="{i18n>pickFldCreated}" text="{pick>/task/CREATEDBY}" />
 							</attributes>
 						</ObjectHeader>
 					</Panel>
 
-					<!-- Picker activity log -->
+					<!-- Picker activity for the chosen day, consolidated per pick task -->
 					<Panel headerText="{i18n>pickLogsResult}" width="auto" visible="{pick>/hasLogs}" class="sapUiSmallMarginTop">
-						<Toolbar>
-							<ObjectStatus text="{i18n>pickUserLabel}: {pick>/summary/user}" />
+						<OverflowToolbar>
+							<ObjectStatus text="{i18n>pickUserLabel}: {pick>/summary/user}" class="sapUiTinyMarginEnd" />
 							<ToolbarSpacer />
-							<ObjectStatus text="{i18n>pickEvents}: {pick>/summary/events}" state="Information" class="sapUiTinyMarginEnd" />
-							<ObjectStatus text="{i18n>pickTasks}: {pick>/summary/tasks}" state="Information" />
-						</Toolbar>
-						<Table id="logsTable" items="{pick>/logs}" growing="true" growingThreshold="100" sticky="ColumnHeaders,HeaderToolbar" noDataText="{i18n>pickNoResult}">
+							<ObjectStatus text="{i18n>pickEvents}: {pick>/summary/events}" state="Information" inverted="true" class="sapUiTinyMarginEnd" />
+							<ObjectStatus text="{i18n>pickTasks}: {pick>/summary/tasks}" state="Information" inverted="true" class="sapUiTinyMarginEnd" />
+							<ObjectStatus text="{i18n>pickCompleted}: {pick>/summary/completed}" state="Success" inverted="true" />
+						</OverflowToolbar>
+						<Table
+							id="logsTable"
+							items="{ path: 'pick>/logs', sorter: [ { path: 'PICKTASK_ID', descending: true, group: true }, { path: 'EVENT_TIMESTAMP', descending: true } ] }"
+							growing="true"
+							growingThreshold="200"
+							sticky="ColumnHeaders,HeaderToolbar,GroupHeaders"
+							noDataText="{i18n>pickNoResult}">
 							<headerToolbar>
 								<OverflowToolbar>
 									<Title text="{i18n>pickLogsResult}" level="H3" />
@@ -83,7 +101,6 @@
 							</headerToolbar>
 							<columns>
 								<Column><Text text="{i18n>pickColTime}" /></Column>
-								<Column><Text text="{i18n>pickColTask}" /></Column>
 								<Column><Text text="{i18n>pickColEvent}" /></Column>
 								<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>pickColItem}" /></Column>
 								<Column hAlign="End"><Text text="{i18n>pickColQty}" /></Column>
@@ -93,8 +110,7 @@
 								<ColumnListItem>
 									<cells>
 										<Text text="{pick>_ts}" />
-										<Text text="{pick>PICKTASK_ID}" />
-										<Text text="{pick>_event}" />
+										<ObjectStatus text="{pick>_event}" state="{pick>_state}" />
 										<Text text="{pick>ITEM_ID}" />
 										<ObjectNumber number="{pick>QUANTITY}" />
 										<Text text="{pick>_level}" />

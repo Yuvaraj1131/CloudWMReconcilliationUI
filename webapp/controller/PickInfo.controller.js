@@ -9,37 +9,56 @@ sap.ui.define([
 	"use strict";
 
 	// =====================================================================
-	//  CONFIG — Pick Info reads from the CAP "ReconcileServices" (OData V4,
-	//  backed by HANA). Two unbound functions, each taking one string key:
-	//    Pick Task   : getPickTaskDetails(ID='PICK_62070')        -> 1 header
-	//    Picker Logs : getPickUserLogs(User_ID='DA94923519')      -> N events
-	//  Relative path -> reached through the CloudWMReconcilliation destination.
+	//  CONFIG — CAP "ReconcileServices" (OData V4, HANA-backed).
+	//    Pick Task   : getPickTaskDetails(ID='PICK_62070')                 -> 1 header
+	//    Picker Logs : getPickUserLogs(User_ID='DA94923519', EventDate=…)  -> N events for that DAY
+	//  NOTE: getPickUserLogs needs the EventDate parameter added in the CAP
+	//  handler (see the deploy notes) so we don't pull a picker's whole history.
 	// =====================================================================
 	var CONFIG = {
 		SERVICE_BASE: "/ReconcileServices",
 		TASK: { name: "getPickTaskDetails", param: "ID" },
-		LOGS: { name: "getPickUserLogs", param: "User_ID" }
+		LOGS: { name: "getPickUserLogs", param: "User_ID", dateParam: "EventDate" }
 	};
+
+	// A pick is treated as "completed" once it reaches the marshalling hand-off.
+	var COMPLETE_EVENT = "MARSHALLING_AREA_CONFIRMED";
+
+	// Colour an event by its type so the log reads at a glance.
+	function eventState(sType) {
+		var t = String(sType || "");
+		if (/MARSHALLING|CONFIRMED/.test(t)) { return "Success"; }
+		if (/EXITED|SHORTED|ERROR|FAIL|REJECT/.test(t)) { return "Warning"; }
+		if (/REQUESTED|RESUMED|SCAN|ENTERED/.test(t)) { return "Information"; }
+		return "None";
+	}
+
+	// Colour a pick-task status.
+	function statusState(sStatus) {
+		var s = String(sStatus || "").toUpperCase();
+		if (s === "COMPLETED") { return "Success"; }
+		if (s === "NOTRELEASED") { return "Warning"; }
+		if (/PROGRESS|PARTIAL|PICKING|RELEASED/.test(s)) { return "Information"; }
+		return "None";
+	}
 
 	return Controller.extend("com.bluestonex.cloudwmreconcilliationui.controller.PickInfo", {
 
 		onInit: function () {
 			this.getView().setModel(new JSONModel({
-				mode: "TASK",          // "TASK" (by Pick ID) | "LOGS" (by Picker/User ID)
+				mode: "TASK",          // "TASK" (by Pick ID) | "LOGS" (by Picker/User ID + date)
 				query: "",
+				date: this._today(),   // only used in LOGS mode
 				busy: false,
 				hasTask: false,
 				hasLogs: false,
 				task: {},
 				logs: [],
 				summary: {},
-				// resolve the SVG path via the module system so it works in BAS
-				// preview AND once deployed (no fragile relative paths)
 				artUrl: sap.ui.require.toUrl("com/bluestonex/cloudwmreconcilliationui/img/picker-animation.svg")
 			}), "pick");
 		},
 
-		// Switching the lookup mode clears the previous result.
 		onModeChange: function () {
 			var oModel = this.getView().getModel("pick");
 			oModel.setProperty("/hasTask", false);
@@ -47,7 +66,6 @@ sap.ui.define([
 			oModel.setProperty("/query", "");
 		},
 
-		// Look up either a pick task or a picker's activity log, depending on mode.
 		onGetPick: function () {
 			var oModel = this.getView().getModel("pick");
 			var sQuery = (oModel.getProperty("/query") || "").trim();
@@ -57,9 +75,21 @@ sap.ui.define([
 			}
 
 			var sMode = oModel.getProperty("/mode");
-			var oFn = (sMode === "LOGS") ? CONFIG.LOGS : CONFIG.TASK;
-			// OData V4 unbound function call, string key wrapped in single quotes.
-			var sUrl = CONFIG.SERVICE_BASE + "/" + oFn.name + "(" + oFn.param + "='" + encodeURIComponent(sQuery) + "')";
+			var sUrl;
+			if (sMode === "LOGS") {
+				var sDate = oModel.getProperty("/date");
+				if (!sDate) {
+					MessageToast.show(this._t("pickPickDate"));
+					return;
+				}
+				// string key in single quotes; Edm.Date literal is bare (no quotes)
+				sUrl = CONFIG.SERVICE_BASE + "/" + CONFIG.LOGS.name +
+					"(" + CONFIG.LOGS.param + "='" + encodeURIComponent(sQuery) + "'," +
+					CONFIG.LOGS.dateParam + "=" + sDate + ")";
+			} else {
+				sUrl = CONFIG.SERVICE_BASE + "/" + CONFIG.TASK.name +
+					"(" + CONFIG.TASK.param + "='" + encodeURIComponent(sQuery) + "')";
+			}
 
 			oModel.setProperty("/busy", true);
 			this._ajax(sUrl).then(function (aRows) {
@@ -89,6 +119,7 @@ sap.ui.define([
 				MessageToast.show(this._t("pickNoResult"));
 				return;
 			}
+			oTask._statusState = statusState(oTask.STATUS_ID);
 			oModel.setProperty("/task", oTask);
 			oModel.setProperty("/hasTask", true);
 			oModel.setProperty("/hasLogs", false);
@@ -97,40 +128,44 @@ sap.ui.define([
 		_showLogs: function (aRows) {
 			var oModel = this.getView().getModel("pick");
 			var aLogs = (aRows || []).slice();
-
-			// newest first
-			aLogs.sort(function (a, b) {
-				return String(b.EVENT_TIMESTAMP || "").localeCompare(String(a.EVENT_TIMESTAMP || ""));
-			});
-
-			// derived display fields (don't mutate meaning, just presentation)
-			var oTaskSet = {};
-			aLogs.forEach(function (e) {
-				e._event = String(e.EVENT_TYPE || "").replace(/_/g, " ");
-				e._ts = String(e.EVENT_TIMESTAMP || "").replace("T", " ").slice(0, 19);
-				e._level = e.LEVEL === "H" ? "Header" : (e.LEVEL === "I" ? "Item" : (e.LEVEL || ""));
-				if (e.PICKTASK_ID) {
-					oTaskSet[e.PICKTASK_ID] = true;
-				}
-			});
-
 			if (!aLogs.length) {
 				oModel.setProperty("/hasLogs", false);
 				MessageToast.show(this._t("pickNoResult"));
 				return;
 			}
 
+			// newest first
+			aLogs.sort(function (a, b) {
+				return String(b.EVENT_TIMESTAMP || "").localeCompare(String(a.EVENT_TIMESTAMP || ""));
+			});
+
+			var oTasks = {};
+			var oCompleted = {};
+			aLogs.forEach(function (e) {
+				e._event = String(e.EVENT_TYPE || "").replace(/_/g, " ");
+				e._ts = String(e.EVENT_TIMESTAMP || "").replace("T", " ").slice(0, 19);
+				e._level = e.LEVEL === "H" ? "Header" : (e.LEVEL === "I" ? "Item" : (e.LEVEL || ""));
+				e._state = eventState(e.EVENT_TYPE);
+				if (e.PICKTASK_ID) {
+					oTasks[e.PICKTASK_ID] = true;
+					if (e.EVENT_TYPE === COMPLETE_EVENT) {
+						oCompleted[e.PICKTASK_ID] = true;
+					}
+				}
+			});
+
 			oModel.setProperty("/logs", aLogs);
 			oModel.setProperty("/summary", {
 				user: aLogs[0].USER_ID || "",
 				events: aLogs.length,
-				tasks: Object.keys(oTaskSet).length
+				tasks: Object.keys(oTasks).length,
+				completed: Object.keys(oCompleted).length
 			});
 			oModel.setProperty("/hasLogs", true);
 			oModel.setProperty("/hasTask", false);
 		},
 
-		// Live client-side filter of the logs table.
+		// Live client-side filter of the (grouped) logs table.
 		onLogSearch: function (oEvent) {
 			var sQuery = (oEvent.getParameter("query") || oEvent.getParameter("newValue") || "").trim();
 			var oBinding = this.byId("logsTable").getBinding("items");
@@ -141,7 +176,7 @@ sap.ui.define([
 				oBinding.filter([]);
 				return;
 			}
-			var aFilters = ["PICKTASK_ID", "_event", "ITEM_ID", "USER_ID"].map(function (sField) {
+			var aFilters = ["PICKTASK_ID", "_event", "ITEM_ID"].map(function (sField) {
 				return new Filter(sField, FilterOperator.Contains, sQuery);
 			});
 			oBinding.filter(new Filter({ filters: aFilters, and: false }));
@@ -151,7 +186,6 @@ sap.ui.define([
 		/*  SERVICE I/O                                                  */
 		/* ============================================================= */
 
-		// GET the function URL and return the OData V4 "value" array.
 		_ajax: function (sUrl) {
 			return new Promise(function (resolve, reject) {
 				var oXhr = new XMLHttpRequest();
@@ -182,6 +216,12 @@ sap.ui.define([
 
 		_t: function (sKey) {
 			return this.getView().getModel("i18n").getResourceBundle().getText(sKey);
+		},
+
+		_today: function () {
+			var oDate = new Date();
+			var pad = function (n) { return String(n).padStart(2, "0"); };
+			return oDate.getFullYear() + "-" + pad(oDate.getMonth() + 1) + "-" + pad(oDate.getDate());
 		}
 	});
 });
