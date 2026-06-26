@@ -3,6 +3,7 @@
 	xmlns="sap.m"
 	xmlns:mvc="sap.ui.core.mvc"
 	xmlns:core="sap.ui.core"
+	xmlns:t="sap.ui.table"
 	displayBlock="true"
 	height="100%">
 
@@ -21,7 +22,7 @@
 							</Select>
 						</VBox>
 						<VBox class="sapUiSmallMarginEnd">
-							<Label text="{= ${pick>/mode} === 'LOGS' ? ${i18n>pickUserLabel} : ${i18n>pickNoLabel} }" labelFor="pickInput" />
+							<Label text="{= ${pick>/mode} === 'LOGS' ? ${i18n>pickUserLabelOpt} : ${i18n>pickNoLabel} }" labelFor="pickInput" />
 							<Input
 								id="pickInput"
 								value="{pick>/query}"
@@ -49,17 +50,8 @@
 							number="{pick>/task/TOTALCUBE}"
 							numberUnit="m³">
 							<statuses>
-								<ObjectStatus
-									title="{i18n>pickFldStatus}"
-									text="{pick>/task/STATUS_ID}"
-									state="{pick>/task/_statusState}"
-									inverted="true" />
-								<ObjectStatus
-									title="{i18n>pickFldTemp}"
-									text="{pick>/task/TEMPERATURE_ID}"
-									icon="sap-icon://temperature"
-									state="Information"
-									inverted="true" />
+								<ObjectStatus title="{i18n>pickFldStatus}" text="{pick>/task/STATUS_ID}" state="{pick>/task/_statusState}" inverted="true" />
+								<ObjectStatus title="{i18n>pickFldTemp}" text="{pick>/task/TEMPERATURE_ID}" icon="sap-icon://temperature" state="Information" inverted="true" />
 							</statuses>
 							<attributes>
 								<ObjectAttribute title="{i18n>pickFldPlant}" text="{pick>/task/PLANT_PLANT}" />
@@ -76,48 +68,64 @@
 						</ObjectHeader>
 					</Panel>
 
-					<!-- Picker activity for the chosen day, consolidated per pick task -->
+					<!-- Picker activity: tree of picks -> events for the chosen day -->
 					<Panel headerText="{i18n>pickLogsResult}" width="auto" visible="{pick>/hasLogs}" class="sapUiSmallMarginTop">
 						<OverflowToolbar>
-							<ObjectStatus text="{i18n>pickUserLabel}: {pick>/summary/user}" class="sapUiTinyMarginEnd" />
+							<ObjectStatus text="{i18n>pickUserLabel}: {pick>/summary/user}" visible="{= !!${pick>/summary/user} }" class="sapUiTinyMarginEnd" />
+							<ObjectStatus text="{i18n>pickAllPickers} ({pick>/summary/pickers})" visible="{= !${pick>/summary/user} }" class="sapUiTinyMarginEnd" />
 							<ToolbarSpacer />
 							<ObjectStatus text="{i18n>pickEvents}: {pick>/summary/events}" state="Information" inverted="true" class="sapUiTinyMarginEnd" />
 							<ObjectStatus text="{i18n>pickTasks}: {pick>/summary/tasks}" state="Information" inverted="true" class="sapUiTinyMarginEnd" />
 							<ObjectStatus text="{i18n>pickCompleted}: {pick>/summary/completed}" state="Success" inverted="true" />
 						</OverflowToolbar>
-						<Table
+
+						<t:TreeTable
 							id="logsTable"
-							items="{ path: 'pick>/logs', sorter: [ { path: 'PICKTASK_ID', descending: true, group: true }, { path: 'EVENT_TIMESTAMP', descending: true } ] }"
-							growing="true"
-							growingThreshold="200"
-							sticky="ColumnHeaders,HeaderToolbar,GroupHeaders"
-							noDataText="{i18n>pickNoResult}">
-							<headerToolbar>
+							rows="{ path: 'pick>/tree', parameters: { arrayNames: ['children'] } }"
+							selectionMode="None"
+							visibleRowCount="15"
+							enableColumnReordering="false"
+							ariaLabelledBy="pickLogsTitle">
+							<t:extension>
 								<OverflowToolbar>
-									<Title text="{i18n>pickLogsResult}" level="H3" />
+									<Title id="pickLogsTitle" text="{i18n>pickLogsResult}" level="H3" />
 									<ToolbarSpacer />
-									<SearchField width="18rem" search=".onLogSearch" placeholder="{i18n>pickLogSearch}" />
+									<SearchField width="18rem" liveChange=".onLogSearch" search=".onLogSearch" placeholder="{i18n>pickLogSearch}" />
 								</OverflowToolbar>
-							</headerToolbar>
-							<columns>
-								<Column><Text text="{i18n>pickColTime}" /></Column>
-								<Column><Text text="{i18n>pickColEvent}" /></Column>
-								<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>pickColItem}" /></Column>
-								<Column hAlign="End"><Text text="{i18n>pickColQty}" /></Column>
-								<Column hAlign="Center" minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>pickColLevel}" /></Column>
-							</columns>
-							<items>
-								<ColumnListItem>
-									<cells>
-										<Text text="{pick>_ts}" />
-										<ObjectStatus text="{pick>_event}" state="{pick>_state}" />
-										<Text text="{pick>ITEM_ID}" />
-										<ObjectNumber number="{pick>QUANTITY}" />
-										<Text text="{pick>_level}" />
-									</cells>
-								</ColumnListItem>
-							</items>
-						</Table>
+							</t:extension>
+							<t:columns>
+								<t:Column width="16rem">
+									<t:label><Label text="{i18n>pickColPickTime}" /></t:label>
+									<t:template>
+										<Text text="{= ${pick>isPick} ? ${pick>PICKTASK_ID} : ${pick>_ts} }" wrapping="false" />
+									</t:template>
+								</t:Column>
+								<t:Column width="15rem">
+									<t:label><Label text="{i18n>pickColEvent}" /></t:label>
+									<t:template>
+										<ObjectStatus text="{pick>_event}" state="{pick>_state}" inverted="{pick>isPick}" />
+									</t:template>
+								</t:Column>
+								<t:Column>
+									<t:label><Label text="{i18n>pickColItem}" /></t:label>
+									<t:template>
+										<Text text="{pick>ITEM_ID}" wrapping="false" />
+									</t:template>
+								</t:Column>
+								<t:Column width="7rem" hAlign="End">
+									<t:label><Label text="{i18n>pickColQty}" /></t:label>
+									<t:template>
+										<Text text="{pick>QUANTITY}" />
+									</t:template>
+								</t:Column>
+								<t:Column width="11rem">
+									<t:label><Label text="{i18n>pickColUser}" /></t:label>
+									<t:template>
+										<Text text="{= ${pick>isPick} ? ${pick>user} : ${pick>_level} }" />
+									</t:template>
+								</t:Column>
+							</t:columns>
+						</t:TreeTable>
 					</Panel>
 
 					<!-- Empty state: animated warehouse-picker illustration -->

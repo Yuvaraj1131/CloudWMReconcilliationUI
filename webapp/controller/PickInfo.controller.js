@@ -1,19 +1,18 @@
 sap.ui.define([
 	"sap/ui/core/mvc/Controller",
 	"sap/ui/model/json/JSONModel",
-	"sap/ui/model/Filter",
-	"sap/ui/model/FilterOperator",
 	"sap/m/MessageToast",
 	"sap/m/MessageBox"
-], function (Controller, JSONModel, Filter, FilterOperator, MessageToast, MessageBox) {
+], function (Controller, JSONModel, MessageToast, MessageBox) {
 	"use strict";
 
 	// =====================================================================
 	//  CONFIG — CAP "ReconcileServices" (OData V4, HANA-backed).
-	//    Pick Task   : getPickTaskDetails(ID='PICK_62070')                 -> 1 header
-	//    Picker Logs : getPickUserLogs(User_ID='DA94923519', EventDate=…)  -> N events for that DAY
-	//  NOTE: getPickUserLogs needs the EventDate parameter added in the CAP
-	//  handler (see the deploy notes) so we don't pull a picker's whole history.
+	//    Pick Task   : getPickTaskDetails(ID='PICK_62070')                       -> 1 header
+	//    Picker Logs : getPickUserLogs(User_ID='DA94923519', EventDate=2026-…)   -> events
+	//                  getPickUserLogs(EventDate=2026-…)                          -> ALL pickers that day
+	//  NOTE: getPickUserLogs needs EventDate (required) and User_ID (optional) in
+	//  the CAP function signature — see the deploy notes.
 	// =====================================================================
 	var CONFIG = {
 		SERVICE_BASE: "/ReconcileServices",
@@ -21,10 +20,9 @@ sap.ui.define([
 		LOGS: { name: "getPickUserLogs", param: "User_ID", dateParam: "EventDate" }
 	};
 
-	// A pick is treated as "completed" once it reaches the marshalling hand-off.
+	// A pick is "completed" once it reaches the marshalling hand-off.
 	var COMPLETE_EVENT = "MARSHALLING_AREA_CONFIRMED";
 
-	// Colour an event by its type so the log reads at a glance.
 	function eventState(sType) {
 		var t = String(sType || "");
 		if (/MARSHALLING|CONFIRMED/.test(t)) { return "Success"; }
@@ -33,7 +31,6 @@ sap.ui.define([
 		return "None";
 	}
 
-	// Colour a pick-task status.
 	function statusState(sStatus) {
 		var s = String(sStatus || "").toUpperCase();
 		if (s === "COMPLETED") { return "Success"; }
@@ -46,17 +43,18 @@ sap.ui.define([
 
 		onInit: function () {
 			this.getView().setModel(new JSONModel({
-				mode: "TASK",          // "TASK" (by Pick ID) | "LOGS" (by Picker/User ID + date)
+				mode: "TASK",          // "TASK" (by Pick ID) | "LOGS" (by date, optional user)
 				query: "",
-				date: this._today(),   // only used in LOGS mode
+				date: this._today(),
 				busy: false,
 				hasTask: false,
 				hasLogs: false,
 				task: {},
-				logs: [],
+				tree: [],
 				summary: {},
 				artUrl: sap.ui.require.toUrl("com/bluestonex/cloudwmreconcilliationui/img/picker-animation.svg")
 			}), "pick");
+			this._aLogs = [];   // flat enriched events, kept for client-side search
 		},
 
 		onModeChange: function () {
@@ -68,27 +66,25 @@ sap.ui.define([
 
 		onGetPick: function () {
 			var oModel = this.getView().getModel("pick");
-			var sQuery = (oModel.getProperty("/query") || "").trim();
-			if (!sQuery) {
-				MessageToast.show(this._t("pickEnterValue"));
-				return;
-			}
-
 			var sMode = oModel.getProperty("/mode");
+			var sQuery = (oModel.getProperty("/query") || "").trim();
 			var sUrl;
+
 			if (sMode === "LOGS") {
+				// Date is required; User_ID is optional (omit -> all pickers that day).
 				var sDate = oModel.getProperty("/date");
 				if (!sDate) {
 					MessageToast.show(this._t("pickPickDate"));
 					return;
 				}
-				// string key in single quotes; Edm.Date literal is bare (no quotes)
-				sUrl = CONFIG.SERVICE_BASE + "/" + CONFIG.LOGS.name +
-					"(" + CONFIG.LOGS.param + "='" + encodeURIComponent(sQuery) + "'," +
-					CONFIG.LOGS.dateParam + "=" + sDate + ")";
+				var sUser = sQuery ? (CONFIG.LOGS.param + "='" + encodeURIComponent(sQuery) + "',") : "";
+				sUrl = CONFIG.SERVICE_BASE + "/" + CONFIG.LOGS.name + "(" + sUser + CONFIG.LOGS.dateParam + "=" + sDate + ")";
 			} else {
-				sUrl = CONFIG.SERVICE_BASE + "/" + CONFIG.TASK.name +
-					"(" + CONFIG.TASK.param + "='" + encodeURIComponent(sQuery) + "')";
+				if (!sQuery) {
+					MessageToast.show(this._t("pickEnterValue"));
+					return;
+				}
+				sUrl = CONFIG.SERVICE_BASE + "/" + CONFIG.TASK.name + "(" + CONFIG.TASK.param + "='" + encodeURIComponent(sQuery) + "')";
 			}
 
 			oModel.setProperty("/busy", true);
@@ -134,13 +130,7 @@ sap.ui.define([
 				return;
 			}
 
-			// newest first
-			aLogs.sort(function (a, b) {
-				return String(b.EVENT_TIMESTAMP || "").localeCompare(String(a.EVENT_TIMESTAMP || ""));
-			});
-
-			var oTasks = {};
-			var oCompleted = {};
+			var oTasks = {}, oCompleted = {}, oUsers = {};
 			aLogs.forEach(function (e) {
 				e._event = String(e.EVENT_TYPE || "").replace(/_/g, " ");
 				e._ts = String(e.EVENT_TIMESTAMP || "").replace("T", " ").slice(0, 19);
@@ -148,15 +138,18 @@ sap.ui.define([
 				e._state = eventState(e.EVENT_TYPE);
 				if (e.PICKTASK_ID) {
 					oTasks[e.PICKTASK_ID] = true;
-					if (e.EVENT_TYPE === COMPLETE_EVENT) {
-						oCompleted[e.PICKTASK_ID] = true;
-					}
+					if (e.EVENT_TYPE === COMPLETE_EVENT) { oCompleted[e.PICKTASK_ID] = true; }
 				}
+				if (e.USER_ID) { oUsers[e.USER_ID] = true; }
 			});
 
-			oModel.setProperty("/logs", aLogs);
+			this._aLogs = aLogs;
+			oModel.setProperty("/tree", this._buildTree(aLogs));
+
+			var aUsers = Object.keys(oUsers);
 			oModel.setProperty("/summary", {
-				user: aLogs[0].USER_ID || "",
+				user: aUsers.length === 1 ? aUsers[0] : "",   // shown when a single picker
+				pickers: aUsers.length,
 				events: aLogs.length,
 				tasks: Object.keys(oTasks).length,
 				completed: Object.keys(oCompleted).length
@@ -165,21 +158,51 @@ sap.ui.define([
 			oModel.setProperty("/hasTask", false);
 		},
 
-		// Live client-side filter of the (grouped) logs table.
-		onLogSearch: function (oEvent) {
-			var sQuery = (oEvent.getParameter("query") || oEvent.getParameter("newValue") || "").trim();
-			var oBinding = this.byId("logsTable").getBinding("items");
-			if (!oBinding) {
-				return;
-			}
-			if (!sQuery) {
-				oBinding.filter([]);
-				return;
-			}
-			var aFilters = ["PICKTASK_ID", "_event", "ITEM_ID"].map(function (sField) {
-				return new Filter(sField, FilterOperator.Contains, sQuery);
+		// Group flat events into a 2-level tree: pick task -> its events.
+		_buildTree: function (aEvents) {
+			var oByPick = {}, aOrder = [];
+			aEvents.forEach(function (e) {
+				var sPid = e.PICKTASK_ID || "(none)";
+				var oNode = oByPick[sPid];
+				if (!oNode) {
+					oNode = oByPick[sPid] = {
+						isPick: true, PICKTASK_ID: sPid, user: e.USER_ID || "",
+						children: [], _completed: false, _lastTs: e.EVENT_TIMESTAMP || "",
+						_ts: "", ITEM_ID: "", QUANTITY: null, _level: ""
+					};
+					aOrder.push(sPid);
+				}
+				oNode.children.push(e);
+				if (e.EVENT_TYPE === COMPLETE_EVENT) { oNode._completed = true; }
+				if (String(e.EVENT_TIMESTAMP) > String(oNode._lastTs)) { oNode._lastTs = e.EVENT_TIMESTAMP; }
 			});
-			oBinding.filter(new Filter({ filters: aFilters, and: false }));
+
+			var that = this;
+			var aTree = aOrder.map(function (sPid) {
+				var oNode = oByPick[sPid];
+				oNode.count = oNode.children.length;
+				oNode._event = oNode.count + " " + that._t("pickEvents");
+				oNode._state = oNode._completed ? "Success" : "Information";
+				oNode.children.sort(function (a, b) {
+					return String(b.EVENT_TIMESTAMP).localeCompare(String(a.EVENT_TIMESTAMP));
+				});
+				return oNode;
+			});
+			// newest pick (by latest event) first
+			aTree.sort(function (a, b) { return String(b._lastTs).localeCompare(String(a._lastTs)); });
+			return aTree;
+		},
+
+		// Client-side search: re-filter the cached events and rebuild the tree.
+		onLogSearch: function (oEvent) {
+			var sQuery = (oEvent.getParameter("query") || oEvent.getParameter("newValue") || "").trim().toLowerCase();
+			var aAll = this._aLogs || [];
+			var aFiltered = !sQuery ? aAll : aAll.filter(function (e) {
+				return [e.PICKTASK_ID, e._event, e.ITEM_ID, e.USER_ID].some(function (v) {
+					return String(v || "").toLowerCase().indexOf(sQuery) !== -1;
+				});
+			});
+			this.getView().getModel("pick").setProperty("/tree", this._buildTree(aFiltered));
 		},
 
 		/* ============================================================= */
