@@ -12,6 +12,7 @@ framework:
     - name: sap.f
     - name: sap.tnt
     - name: sap.ui.table
+    - name: sap.ui.export
     - name: themelib_sap_horizon
 server:
   customMiddleware:

@@ -68,42 +68,50 @@
 						</ObjectHeader>
 					</Panel>
 
-					<!-- Picker activity: tree of picks -> events for the chosen day -->
-					<Panel headerText="{i18n>pickLogsResult}" width="auto" visible="{pick>/hasLogs}" class="sapUiSmallMarginTop">
-						<OverflowToolbar>
-							<ObjectStatus text="{i18n>pickUserLabel}: {pick>/summary/user}" visible="{= !!${pick>/summary/user} }" class="sapUiTinyMarginEnd" />
-							<ObjectStatus text="{i18n>pickAllPickers} ({pick>/summary/pickers})" visible="{= !${pick>/summary/user} }" class="sapUiTinyMarginEnd" />
-							<ToolbarSpacer />
-							<ObjectStatus text="{i18n>pickEvents}: {pick>/summary/events}" state="Information" inverted="true" class="sapUiTinyMarginEnd" />
-							<ObjectStatus text="{i18n>pickTasks}: {pick>/summary/tasks}" state="Information" inverted="true" class="sapUiTinyMarginEnd" />
-							<ObjectStatus text="{i18n>pickCompleted}: {pick>/summary/completed}" state="Success" inverted="true" />
-						</OverflowToolbar>
+					<!-- Picker activity: User -> Picks -> Events tree -->
+					<Panel width="auto" visible="{pick>/hasLogs}" class="sapUiSmallMarginTop">
+
+						<!-- report-style summary header -->
+						<VBox class="sapUiSmallMarginBegin sapUiSmallMarginTop">
+							<HBox alignItems="Center">
+								<core:Icon src="sap-icon://group" class="sapUiTinyMarginEnd" />
+								<Title id="pickLogsTitle" text="{i18n>pickLogsResult} — {pick>/summary/date}" level="H3" />
+							</HBox>
+							<HBox wrap="Wrap" alignItems="Center" class="sapUiTinyMarginTop">
+								<ObjectStatus text="{pick>/summary/scope}" class="sapUiTinyMarginEnd" />
+								<ObjectStatus text="{pick>/summary/tasks} {i18n>pickTasks}" state="Information" inverted="true" class="sapUiTinyMarginEnd" />
+								<ObjectStatus text="{pick>/summary/events} {i18n>pickEvents}" state="Information" inverted="true" class="sapUiTinyMarginEnd" />
+								<ObjectStatus text="{pick>/summary/completed} {i18n>pickCompleted}" state="Success" inverted="true" class="sapUiTinyMarginEnd" />
+								<ObjectStatus text="{pick>/summary/from}–{pick>/summary/to}" icon="sap-icon://history" />
+							</HBox>
+						</VBox>
 
 						<t:TreeTable
 							id="logsTable"
 							rows="{ path: 'pick>/tree', parameters: { arrayNames: ['children'] } }"
 							selectionMode="None"
-							visibleRowCount="15"
+							visibleRowCount="16"
+							numberOfExpandedLevels="1"
 							enableColumnReordering="false"
 							ariaLabelledBy="pickLogsTitle">
 							<t:extension>
 								<OverflowToolbar>
-									<Title id="pickLogsTitle" text="{i18n>pickLogsResult}" level="H3" />
 									<ToolbarSpacer />
-									<SearchField width="18rem" liveChange=".onLogSearch" search=".onLogSearch" placeholder="{i18n>pickLogSearch}" />
+									<SearchField width="16rem" liveChange=".onLogSearch" search=".onLogSearch" placeholder="{i18n>pickLogSearch}" />
+									<Button text="{i18n>pickExport}" icon="sap-icon://excel-attachment" press=".onExportExcel" />
 								</OverflowToolbar>
 							</t:extension>
 							<t:columns>
-								<t:Column width="16rem">
+								<t:Column width="20rem">
 									<t:label><Label text="{i18n>pickColPickTime}" /></t:label>
 									<t:template>
-										<Text text="{= ${pick>isPick} ? ${pick>PICKTASK_ID} : ${pick>_ts} }" wrapping="false" />
+										<Text text="{= ${pick>isUser} ? ${pick>USER_ID} : (${pick>isPick} ? ${pick>PICKTASK_ID} : ${pick>_ts}) }" wrapping="false" />
 									</t:template>
 								</t:Column>
-								<t:Column width="15rem">
+								<t:Column width="16rem">
 									<t:label><Label text="{i18n>pickColEvent}" /></t:label>
 									<t:template>
-										<ObjectStatus text="{pick>_event}" state="{pick>_state}" inverted="{pick>isPick}" />
+										<ObjectStatus text="{pick>_event}" state="{pick>_state}" inverted="{= !!${pick>isUser} || !!${pick>isPick} }" />
 									</t:template>
 								</t:Column>
 								<t:Column>
@@ -118,10 +126,10 @@
 										<Text text="{pick>QUANTITY}" />
 									</t:template>
 								</t:Column>
-								<t:Column width="11rem">
-									<t:label><Label text="{i18n>pickColUser}" /></t:label>
+								<t:Column width="8rem">
+									<t:label><Label text="{i18n>pickColLevel}" /></t:label>
 									<t:template>
-										<Text text="{= ${pick>isPick} ? ${pick>user} : ${pick>_level} }" />
+										<Text text="{pick>_level}" />
 									</t:template>
 								</t:Column>
 							</t:columns>
