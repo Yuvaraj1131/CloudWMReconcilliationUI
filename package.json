@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Freestyle SAPUI5 reconciliation monitor for the SAP LIPS delivery-item table (ECC vs HANA)",
   "private": true,
+  "sapux": true,
   "keywords": [
     "ui5",
     "sapui5",
