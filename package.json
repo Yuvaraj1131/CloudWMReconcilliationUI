@@ -17,11 +17,18 @@
     "start": "ui5 serve --open index.html",
     "start-noflp": "ui5 serve --open index.html",
     "build": "ui5 build --clean-dest --dest dist",
-    "lint": "echo \"Add eslint here if desired\""
+    "lint": "echo \"Add eslint here if desired\"",
+    "build:cf": "ui5 build preload --clean-dest --config ui5-deploy.yaml --include-task=generateCachebusterInfo",
+    "build:mta": "rimraf resources mta_archives && mbt build",
+    "deploy": "fiori cfDeploy",
+    "undeploy": "cf undeploy combluestonexcloudwmreconcilliationui --delete-services --delete-service-keys --delete-service-brokers"
   },
   "devDependencies": {
     "@ui5/cli": "^3.11.0",
-    "@sap/ux-ui5-tooling": "^1.15.4"
+    "@sap/ux-ui5-tooling": "^1.15.4",
+    "ui5-task-zipper": "^3.4.x",
+    "rimraf": "^5.0.5",
+    "mbt": "^1.2.49"
   },
   "ui5": {
     "dependencies": [

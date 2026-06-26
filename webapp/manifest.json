@@ -2,7 +2,7 @@
   "_version": "1.59.0",
   "sap.cloud": {
     "public": true,
-    "service": "com.bluestonex.cloudwmreconcilliationui"
+    "service": "combluestonexcloudwmreconcilliationui"
   },
   "sap.app": {
     "id": "com.bluestonex.cloudwmreconcilliationui",
@@ -14,7 +14,12 @@
     "title": "{{appTitle}}",
     "description": "{{appDescription}}",
     "tags": {
-      "keywords": ["LIPS", "Reconciliation", "ECC", "HANA"]
+      "keywords": [
+        "LIPS",
+        "Reconciliation",
+        "ECC",
+        "HANA"
+      ]
     },
     "dataSources": {},
     "crossNavigation": {
