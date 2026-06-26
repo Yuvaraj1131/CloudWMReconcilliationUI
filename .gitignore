@@ -3,6 +3,8 @@ node_modules/
 
 # Build output
 dist/
+mta_archives/
+resources/
 
 # Logs
 *.log
