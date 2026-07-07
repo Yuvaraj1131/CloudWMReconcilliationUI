@@ -30,9 +30,9 @@ server:
       configuration:
         ignoreCertError: true
         backend:
-          # Local CAP running on port 4004 (same workspace as the UI dev server).
+          # DEPLOYED CAP via BTP destination (resolved by BAS from the subaccount).
           - path: /ReconcileServices
-            url: http://localhost:4004
+            destination: CloudWMReconcilliation
         ui5:
           path:
             - /resources
