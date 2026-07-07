@@ -101,15 +101,18 @@
 .bsxLogo {
 	height: 40px !important;
 	width: auto;
-	margin: 0 0.75rem 0 0.5rem;
+	margin: 0 0.25rem 0 0.5rem;
 }
 
-/* Shell title next to the logo: white, right-sized */
+/* Shell title next to the logo: white, right-sized, snug to the brand mark */
 .sapTntToolHeader .sapMTitle,
 .sapTntToolHeader .sapMTitle .sapMTitleInner {
 	color: #FFFFFF !important;
 	font-size: 1.125rem;
 	font-weight: 600;
+}
+.bsxShellTitle.sapMTitle {
+	margin-left: 0.25rem;
 }
 
 /* ---- Content canvas + card treatment ---- */

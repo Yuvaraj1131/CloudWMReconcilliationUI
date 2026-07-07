@@ -13,7 +13,7 @@
 			<tnt:ToolHeader>
 				<Button icon="sap-icon://menu2" type="Transparent" press=".onMenuToggle" tooltip="{i18n>navToggle}" />
 				<Image src="img/bluestonex-logo.svg" class="bsxLogo" densityAware="false" tooltip="Bluestonex" />
-				<Title text="{i18n>shellTitle}" level="H1" wrapping="false" class="sapUiSmallMarginBegin" />
+				<Title text="{i18n>shellTitle}" level="H1" wrapping="false" class="bsxShellTitle" />
 				<ToolbarSpacer />
 			</tnt:ToolHeader>
 		</tnt:header>
