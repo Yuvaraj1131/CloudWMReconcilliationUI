@@ -22,12 +22,12 @@ modules:
       instance:
         destinations:
         - Name: combluestonexcloudwmreconcilliationui_html_repo_host
-          ServiceInstanceName: combluestonexcloudwmreconcilliationui-html5-service
+          ServiceInstanceName: cloudwmreconcilliationui-html5-service
           ServiceKeyName: combluestonexcloudwmreconcilliationui-repo-host-key
           sap.cloud.service: combluestonexcloudwmreconcilliationui
         - Authentication: OAuth2UserTokenExchange
           Name: combluestonexcloudwmreconcilliationui_uaa
-          ServiceInstanceName: combluestonexcloudwmreconcilliationui-xsuaa-service
+          ServiceInstanceName: cloudwmreconcilliationui-xsuaa-service
           ServiceKeyName: combluestonexcloudwmreconcilliationui-uaa-key
           sap.cloud.service: combluestonexcloudwmreconcilliationui
         existing_destinations_policy: update
@@ -74,20 +74,20 @@ resources:
           existing_destinations_policy: update
       version: 1.0.0
     service: destination
-    service-name: combluestonexcloudwmreconcilliationui-destination-service
+    service-name: cloudwmreconcilliationui-destination-service
     service-plan: lite
 - name: combluestonexcloudwmreconcilliationui-uaa
   type: org.cloudfoundry.managed-service
   parameters:
     path: ./xs-security.json
     service: xsuaa
-    service-name: combluestonexcloudwmreconcilliationui-xsuaa-service
+    service-name: cloudwmreconcilliationui-xsuaa-service
     service-plan: application
 - name: combluestonexcloudwmreconcilliationui-repo-host
   type: org.cloudfoundry.managed-service
   parameters:
     service: html5-apps-repo
-    service-name: combluestonexcloudwmreconcilliationui-html5-service
+    service-name: cloudwmreconcilliationui-html5-service
     service-plan: app-host
 parameters:
   deploy_mode: html5-repo
