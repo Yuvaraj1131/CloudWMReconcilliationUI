@@ -23,3 +23,124 @@
 .sapMITBCount {
 	font-variant-numeric: tabular-nums;
 }
+
+/* ==========================================================================
+   BLUESTONEX BRAND THEME
+   Look-and-feel overlay on top of sap_horizon. Pure styling — no markup or
+   logic depends on any of this. Achieved by re-pointing Horizon's own CSS
+   theming variables at the Bluestonex palette, plus a few shell-chrome tweaks.
+   ========================================================================== */
+
+:root {
+	/* --- Bluestonex palette (from the corporate dashboard) --- */
+	--bsx-navy:        #0B1020;   /* header + side navigation           */
+	--bsx-navy-2:      #141B30;   /* elevated dark / hover on dark      */
+	--bsx-blue:        #2570CF;   /* primary brand (CTAs, charts, links)*/
+	--bsx-blue-dark:   #1E5FB0;   /* brand hover/active                 */
+	--bsx-blue-bright: #1CA5E0;   /* logo highlight / info accents      */
+	--bsx-violet:      #7B5CFF;   /* secondary accent (selection, focus)*/
+	--bsx-canvas:      #F4F5F8;   /* page background                    */
+	--bsx-card:        #FFFFFF;   /* cards / panels / tables            */
+	--bsx-border:      #E3E6EC;   /* hairlines                          */
+
+	/* --- Typography: Poppins headings, keeping the SAP body font as fallback --- */
+	--sapFontHeaderFamily: "Poppins", "72", "72full", "Segoe UI", Arial, sans-serif;
+
+	/* --- Re-point Horizon semantic variables --- */
+	--sapBrandColor:                       var(--bsx-blue);
+	--sapHighlightColor:                   var(--bsx-blue);
+	--sapBaseColor:                        var(--bsx-card);
+	--sapBackgroundColor:                  var(--bsx-canvas);
+	--sapContent_IconColor:                var(--bsx-blue);
+
+	/* Emphasized buttons -> brand blue */
+	--sapButton_Emphasized_Background:         var(--bsx-blue);
+	--sapButton_Emphasized_BorderColor:        var(--bsx-blue);
+	--sapButton_Emphasized_Hover_Background:   var(--bsx-blue-dark);
+	--sapButton_Emphasized_Hover_BorderColor:  var(--bsx-blue-dark);
+	--sapButton_Emphasized_Active_Background:  var(--bsx-blue-dark);
+	--sapButton_Emphasized_TextColor:          #FFFFFF;
+
+	/* Links, selection, focus */
+	--sapLink_TextColor:      var(--bsx-blue);
+	--sapSelectedColor:       var(--bsx-blue);
+	--sapActiveColor:         var(--bsx-blue-dark);
+	--sapContent_FocusColor:  var(--bsx-violet);
+
+	/* Surfaces */
+	--sapGroup_ContentBackground: var(--bsx-card);
+	--sapTile_Background:         var(--bsx-card);
+	--sapList_Background:         var(--bsx-card);
+	--sapList_HeaderBackground:   var(--bsx-card);
+	--sapPageHeader_Background:   var(--bsx-card);
+	--sapObjectHeader_Background: var(--bsx-card);
+}
+
+/* ---- App shell: dark Bluestonex navy header + side rail ---- */
+.sapTntToolHeader {
+	background: linear-gradient(180deg, var(--bsx-navy) 0%, var(--bsx-navy-2) 100%) !important;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sapTntSideNavigation,
+.sapTntSideNavigationFlexible {
+	background: var(--bsx-navy) !important;
+}
+
+/* Selected side-nav entry gets a Bluestonex accent bar + subtle wash */
+.sapTntNavLI .sapTntNavLIGroup.sapTntNavLIItemSelected,
+.sapTntNavLIItemSelected {
+	background: var(--bsx-navy-2) !important;
+	box-shadow: inset 3px 0 0 0 var(--bsx-blue-bright);
+}
+.sapTntNavLIGroup:hover {
+	background: var(--bsx-navy-2) !important;
+}
+
+/* Bluestonex logo in the header */
+.bsxLogo {
+	height: 1.75rem;
+	margin: 0 0.25rem 0 0.5rem;
+}
+
+/* ---- Content canvas + card treatment ---- */
+.sapFDynamicPage,
+.sapMPage,
+.sapMPageBg {
+	background: var(--bsx-canvas) !important;
+}
+
+/* Panels and tables read as elevated white cards */
+.sapMPanel,
+.sapMList,
+.sapUiTable {
+	background: var(--bsx-card);
+	border-radius: 12px;
+	box-shadow: 0 1px 3px rgba(11, 16, 32, 0.06), 0 4px 12px rgba(11, 16, 32, 0.04);
+}
+
+.sapMPanel {
+	padding: 0.25rem 0.25rem 0.5rem;
+	margin-bottom: 0.75rem;
+}
+
+/* Emphasized (primary) buttons: brand blue with a soft brand-tinted shadow */
+.sapMBtnEmphasized.sapMBtnInner,
+.sapMBtnEmphasized .sapMBtnInner {
+	box-shadow: 0 2px 6px rgba(37, 112, 207, 0.35);
+	border-radius: 8px;
+}
+
+/* IconTabBar selected filter uses the brand blue underline */
+.sapMITBSelected .sapMITBText,
+.sapMITBSelected .sapMITBCount {
+	color: var(--bsx-blue) !important;
+}
+.sapMITBFilter.sapMITBSelected:after {
+	background-color: var(--bsx-blue) !important;
+}
+
+/* Rounded search / input affordances to match the modern brand look */
+.sapMDynamicPageTitle {
+	background: transparent;
+}

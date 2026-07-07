@@ -39,7 +39,7 @@
     "technology": "UI5",
     "icons": {
       "icon": "sap-icon://sales-document",
-      "favIcon": "",
+      "favIcon": "img/favicon.svg",
       "phone": "",
       "phone@2": "",
       "tablet": "",
