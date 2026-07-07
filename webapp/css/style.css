@@ -93,9 +93,27 @@
 	color: #FFFFFF !important;
 }
 
-/* Selected side-nav entry: Bluestonex blue accent bar on the light pill */
+/* Side navigation is a DARK rail. Its items were inheriting a white list
+   background from the global surface variables, which made an unselected item
+   look active (two highlights at once). Force the rail treatment explicitly:
+   transparent items + light text, and one clear brand-blue selected state. */
+.sapTntSideNavigation .sapTntNLI {
+	background-color: transparent !important;
+}
+.sapTntSideNavigation .sapTntNLIText,
+.sapTntSideNavigation .sapTntNLIIcon {
+	color: rgba(255, 255, 255, 0.85) !important;
+}
+.sapTntSideNavigation .sapTntNLI:hover {
+	background-color: var(--bsx-navy-2) !important;
+}
 .sapTntSideNavigation .sapTntNLISelected {
-	box-shadow: inset 3px 0 0 0 var(--bsx-blue);
+	background-color: var(--bsx-navy-2) !important;
+	box-shadow: inset 3px 0 0 0 var(--bsx-blue-bright);
+}
+.sapTntSideNavigation .sapTntNLISelected .sapTntNLIText,
+.sapTntSideNavigation .sapTntNLISelected .sapTntNLIIcon {
+	color: #FFFFFF !important;
 }
 
 /* Keep selection / focus / flyout contained inside the rail — never bleed onto
