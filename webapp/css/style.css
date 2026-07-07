@@ -156,3 +156,21 @@
 .sapMDynamicPageTitle {
 	background: transparent;
 }
+
+/* ---- Picker Activity tree table: white/grey zebra rows instead of line dividers ---- */
+.bsxZebra .sapUiTableCtrl > tbody > tr.sapUiTableTr > td.sapUiTableCell,
+.bsxZebra .sapUiTableRowHdr {
+	border-bottom: none;                       /* drop the horizontal divider lines */
+}
+/* odd (1st, 3rd, …) rows white */
+.bsxZebra .sapUiTableCtrl > tbody > tr.sapUiTableTr:nth-child(odd) > td.sapUiTableCell {
+	background-color: #FFFFFF;
+}
+/* even (2nd, 4th, …) rows soft grey */
+.bsxZebra .sapUiTableCtrl > tbody > tr.sapUiTableTr:nth-child(even) > td.sapUiTableCell {
+	background-color: #F3F4F7;
+}
+/* keep vertical column separators subtle so the stripes read as the divider */
+.bsxZebra .sapUiTableCtrl > tbody > tr.sapUiTableTr > td.sapUiTableCell {
+	border-right-color: #EDEFF3;
+}
