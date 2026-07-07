@@ -87,14 +87,27 @@
 	background: var(--bsx-navy) !important;
 }
 
-/* Selected side-nav entry gets a Bluestonex accent bar + subtle wash */
-.sapTntNavLI .sapTntNavLIGroup.sapTntNavLIItemSelected,
-.sapTntNavLIItemSelected {
-	background: var(--bsx-navy-2) !important;
-	box-shadow: inset 3px 0 0 0 var(--bsx-blue-bright);
+/* Header hamburger (menu) icon — white so it stays visible on the navy header */
+.sapTntToolHeader .sapMBtn .sapUiIcon,
+.sapTntToolHeader .sapMBtnIcon {
+	color: #FFFFFF !important;
 }
-.sapTntNavLIGroup:hover {
-	background: var(--bsx-navy-2) !important;
+
+/* Selected side-nav entry: Bluestonex blue accent bar on the light pill */
+.sapTntSideNavigation .sapTntNLISelected {
+	box-shadow: inset 3px 0 0 0 var(--bsx-blue);
+}
+
+/* Keep selection / focus / flyout contained inside the rail — never bleed onto
+   the content (the side nav renders with overflow:visible by default, which let
+   the focus ring and selected pill spill over the page). */
+.sapTntSideNavigation {
+	overflow-x: hidden;
+}
+.sapTntSideNavigation .sapTntNLI:focus,
+.sapTntSideNavigation .sapTntNLI a:focus,
+.sapTntSideNavigation .sapTntNLIFirstLevel:focus {
+	outline-offset: -2px !important;
 }
 
 /* Bluestonex logo in the header — enlarged brand mark */
