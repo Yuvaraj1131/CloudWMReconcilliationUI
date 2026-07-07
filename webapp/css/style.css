@@ -97,10 +97,19 @@
 	background: var(--bsx-navy-2) !important;
 }
 
-/* Bluestonex logo in the header */
+/* Bluestonex logo in the header — enlarged brand mark */
 .bsxLogo {
-	height: 1.75rem;
-	margin: 0 0.25rem 0 0.5rem;
+	height: 40px !important;
+	width: auto;
+	margin: 0 0.75rem 0 0.5rem;
+}
+
+/* Shell title next to the logo: white, right-sized */
+.sapTntToolHeader .sapMTitle,
+.sapTntToolHeader .sapMTitle .sapMTitleInner {
+	color: #FFFFFF !important;
+	font-size: 1.125rem;
+	font-weight: 600;
 }
 
 /* ---- Content canvas + card treatment ---- */
