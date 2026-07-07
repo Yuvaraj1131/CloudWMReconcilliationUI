@@ -87,6 +87,20 @@
 	background: var(--bsx-navy) !important;
 }
 
+/* The whole side chrome is a dark rail. Neutralize the global white surface
+   variables here so NO descendant container (list, group, overflow area) can
+   paint white — this is what turned the rail white when collapsed. Belt-and-
+   suspenders: also hard-set the aside/containers to the navy. */
+.sapTntToolPageAside,
+.sapTntToolPageAside .sapTntSideNavigation,
+.sapTntToolPageAside .sapTntSideNavigationFlexible {
+	--sapList_Background: transparent;
+	--sapList_HeaderBackground: transparent;
+	--sapGroup_ContentBackground: transparent;
+	--sapBaseColor: transparent;
+	background-color: var(--bsx-navy) !important;
+}
+
 /* Header hamburger (menu) icon — white so it stays visible on the navy header */
 .sapTntToolHeader .sapMBtn .sapUiIcon,
 .sapTntToolHeader .sapMBtnIcon {
@@ -103,6 +117,13 @@
 .sapTntSideNavigation .sapTntNLIText,
 .sapTntSideNavigation .sapTntNLIIcon {
 	color: rgba(255, 255, 255, 0.85) !important;
+}
+/* Keep labels on one line so they don't wrap/squeeze during the expand
+   animation (they were compressing to two lines then snapping wide). */
+.sapTntSideNavigation .sapTntNLIText {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 .sapTntSideNavigation .sapTntNLI:hover {
 	background-color: var(--bsx-navy-2) !important;
