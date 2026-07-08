@@ -109,7 +109,11 @@ sap.ui.define([
 			this.getView().setModel(new JSONModel({
 				busy: false,
 				dateText: this._today(),
-				plant: "BR10",                 // optional plant filter (client-side)
+				plant: "BR10",                 // selected plant filter (client-side)
+				plants: [                      // dropdown options (rebuilt from data on load)
+					{ key: "", text: "All plants" },
+					{ key: "BR10", text: "BR10" }
+				],
 				masterData: "DELIVERY_ITEM",   // which table to reconcile (only this one is live)
 				selectedTab: "ECC",
 				eccCount: 0,
@@ -164,6 +168,18 @@ sap.ui.define([
 			]).then(function (aResults) {
 				var aEcc = aResults[0];
 				var aHana = aResults[1];
+
+				// Refresh the plant dropdown from the FULL datasets (before filtering),
+				// always offering BR10 and an "All plants" clear option.
+				var oPlantSet = {};
+				aEcc.concat(aHana).forEach(function (o) {
+					var p = String(o.Plant == null ? "" : o.Plant).trim();
+					if (p) { oPlantSet[p] = true; }
+				});
+				oPlantSet.BR10 = true;
+				oUi.setProperty("/plants", [{ key: "", text: "All plants" }].concat(
+					Object.keys(oPlantSet).sort().map(function (p) { return { key: p, text: p }; })
+				));
 
 				// Optional plant filter (client-side): the ECC/HANA services take only
 				// a date, so narrow both datasets to the chosen plant before reconciling.

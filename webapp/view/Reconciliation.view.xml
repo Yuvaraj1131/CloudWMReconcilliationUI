@@ -31,7 +31,7 @@
 					<!-- plain Toolbar (not OverflowToolbar) so controls never hide in a "..." overflow menu -->
 					<Toolbar>
 						<Label text="{i18n>masterDataLabel}" labelFor="msMaster" />
-						<Select id="msMaster" selectedKey="{ui>/masterData}" change=".onMasterDataChange" width="15rem" autoAdjustWidth="false" class="sapUiSmallMarginEnd">
+						<Select id="msMaster" selectedKey="{ui>/masterData}" change=".onMasterDataChange" width="12rem" autoAdjustWidth="false" class="sapUiSmallMarginEnd">
 							<core:Item key="DELIVERY_ITEM" text="{i18n>mdDeliveryItem}" />
 							<core:Item key="DELIVERY_HEADER" text="{i18n>mdDeliveryHeader}" />
 							<core:Item key="SALES_HEADER" text="{i18n>mdSalesHeader}" />
@@ -49,14 +49,18 @@
 							width="13rem"
 							class="sapUiSmallMarginEnd" />
 						<ToolbarSeparator />
-						<Label text="{i18n>filterPlantLabel}" labelFor="inpPlant" />
-						<Input
-							id="inpPlant"
-							value="{ui>/plant}"
+						<Label text="{i18n>filterPlantLabel}" labelFor="selPlant" />
+						<Select
+							id="selPlant"
+							selectedKey="{ui>/plant}"
+							items="{ui>/plants}"
 							change=".onLoad"
 							enabled="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"
 							width="8rem"
-							class="sapUiSmallMarginEnd" />
+							autoAdjustWidth="false"
+							class="sapUiSmallMarginEnd">
+							<core:Item key="{ui>key}" text="{ui>text}" />
+						</Select>
 						<Button
 							id="btnRefresh"
 							text="{i18n>btnLoad}"
