@@ -48,6 +48,15 @@
 							enabled="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"
 							width="13rem"
 							class="sapUiSmallMarginEnd" />
+						<ToolbarSeparator />
+						<Label text="{i18n>filterPlantLabel}" labelFor="inpPlant" />
+						<Input
+							id="inpPlant"
+							value="{ui>/plant}"
+							change=".onLoad"
+							enabled="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"
+							width="8rem"
+							class="sapUiSmallMarginEnd" />
 						<Button
 							id="btnRefresh"
 							text="{i18n>btnLoad}"

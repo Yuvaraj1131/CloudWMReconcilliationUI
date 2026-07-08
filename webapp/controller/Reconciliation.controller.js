@@ -109,6 +109,7 @@ sap.ui.define([
 			this.getView().setModel(new JSONModel({
 				busy: false,
 				dateText: this._today(),
+				plant: "BR10",                 // optional plant filter (client-side)
 				masterData: "DELIVERY_ITEM",   // which table to reconcile (only this one is live)
 				selectedTab: "ECC",
 				eccCount: 0,
@@ -163,6 +164,17 @@ sap.ui.define([
 			]).then(function (aResults) {
 				var aEcc = aResults[0];
 				var aHana = aResults[1];
+
+				// Optional plant filter (client-side): the ECC/HANA services take only
+				// a date, so narrow both datasets to the chosen plant before reconciling.
+				var sPlant = (oUi.getProperty("/plant") || "").trim();
+				if (sPlant) {
+					var fnByPlant = function (o) {
+						return String(o.Plant == null ? "" : o.Plant).trim() === sPlant;
+					};
+					aEcc = aEcc.filter(fnByPlant);
+					aHana = aHana.filter(fnByPlant);
+				}
 
 				this.getView().getModel("ecc").setProperty("/items", aEcc);
 				this.getView().getModel("hana").setProperty("/items", aHana);
