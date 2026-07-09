@@ -18,7 +18,6 @@
 							<Label text="{i18n>pickModeLabel}" labelFor="pickMode" />
 							<Select id="pickMode" selectedKey="{pick>/mode}" change=".onModeChange" width="16rem">
 								<core:Item key="TASK" text="{i18n>pickModeTask}" />
-								<core:Item key="LOGS" text="{i18n>pickModeLogs}" />
 							</Select>
 						</VBox>
 						<VBox class="sapUiSmallMarginEnd">

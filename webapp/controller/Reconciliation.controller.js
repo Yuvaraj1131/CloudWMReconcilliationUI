@@ -681,7 +681,9 @@ sap.ui.define([
 		_now: function () {
 			var oDate = new Date();
 			var pad = function (n) { return String(n).padStart(2, "0"); };
-			return this._fmt(oDate) + " " + pad(oDate.getHours()) + ":" + pad(oDate.getMinutes()) + ":" + pad(oDate.getSeconds());
+			// Display the refresh timestamp in UTC (not the browser's local zone).
+			return oDate.getUTCFullYear() + "-" + pad(oDate.getUTCMonth() + 1) + "-" + pad(oDate.getUTCDate()) +
+				" " + pad(oDate.getUTCHours()) + ":" + pad(oDate.getUTCMinutes()) + ":" + pad(oDate.getUTCSeconds()) + " UTC";
 		}
 	});
 });
