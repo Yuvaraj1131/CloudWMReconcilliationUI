@@ -170,10 +170,15 @@
 	margin-bottom: 0.75rem;
 }
 
-/* Round the IconTabBar card (was square) to match the panels/tables */
+/* Round the IconTabBar card (was square) to match the panels/tables.
+   NOTE: do NOT set overflow:hidden here — it clips the table's internal
+   scroll container and breaks scrolling through rows. Round only the tab
+   strip's top corners so the card still reads curved without clipping. */
 .sapMITB {
 	border-radius: 12px;
-	overflow: hidden;
+}
+.sapMITB .sapMITBContentInner {
+	border-radius: 0 0 12px 12px;
 }
 
 /* Consistent rounded corners on inputs / search / select / date picker */
