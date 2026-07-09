@@ -46,6 +46,10 @@
 	/* --- Typography: Poppins headings, keeping the SAP body font as fallback --- */
 	--sapFontHeaderFamily: "Poppins", "72", "72full", "Segoe UI", Arial, sans-serif;
 
+	/* Consistent rounded corners for all field controls (input/select/date/search) */
+	--sapField_BorderCornerRadius: 8px;
+	--sapButton_BorderCornerRadius: 8px;
+
 	/* --- Re-point Horizon semantic variables --- */
 	--sapBrandColor:                       var(--bsx-blue);
 	--sapHighlightColor:                   var(--bsx-blue);
@@ -186,6 +190,22 @@
 .sapMPanel {
 	padding: 0.25rem 0.25rem 0.5rem;
 	margin-bottom: 0.75rem;
+}
+
+/* The IconTabBar (ECC/HANA/Missing) rendered with square corners while the
+   panels/tables were rounded — round it (and clip its content) so every card
+   reads consistently curved. */
+.sapMITB {
+	border-radius: 12px;
+	overflow: hidden;
+}
+
+/* Consistent rounded corners on inputs / search / select / date picker to
+   match the 8px buttons (were 0–4px). */
+.sapMSF,
+.sapMSlt,
+.sapMInputBaseContentWrapper {
+	border-radius: 8px;
 }
 
 /* Emphasized (primary) buttons: brand blue with a soft brand-tinted shadow */
