@@ -3,6 +3,7 @@
 	xmlns="sap.m"
 	xmlns:mvc="sap.ui.core.mvc"
 	xmlns:core="sap.ui.core"
+	xmlns:t="sap.ui.table"
 	displayBlock="true"
 	height="100%">
 
@@ -56,32 +57,42 @@
 						</ObjectHeader>
 					</Panel>
 
-					<!-- Pick Task items -->
+					<!-- Pick Task items — full field set in a virtualized grid (horizontal
+					     scroll for the many columns; reorder/freeze enabled). -->
 					<Panel headerText="{i18n>pickItemsHeader}" width="auto" visible="{pick>/hasTask}" class="sapUiSmallMarginTop">
-						<Table items="{pick>/items}" growing="true" growingThreshold="50" sticky="ColumnHeaders" noDataText="{i18n>pickItemsNoData}">
-							<columns>
-								<Column><Text text="{i18n>pickItemMaterial}" /></Column>
-								<Column hAlign="End"><Text text="{i18n>pickItemTotalQty}" /></Column>
-								<Column hAlign="End"><Text text="{i18n>pickItemOpenQty}" /></Column>
-								<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>pickItemBatch}" /></Column>
-								<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>pickItemBin}" /></Column>
-								<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>pickItemStorageType}" /></Column>
-								<Column hAlign="Center"><Text text="{i18n>pickItemStatus}" /></Column>
-							</columns>
-							<items>
-								<ColumnListItem>
-									<cells>
-										<ObjectIdentifier title="{pick>MATERIAL_MATERIAL}" text="{pick>SLOC}" />
-										<ObjectNumber number="{pick>TOTALQUANTITY}" unit="{pick>UOM_UNITCODE}" />
-										<ObjectNumber number="{pick>OPENQUANTITY}" unit="{pick>UOM_UNITCODE}" />
-										<Text text="{pick>BATCH}" />
-										<Text text="{pick>SOURCESTORAGEBIN}" />
-										<Text text="{pick>SOURCESTORAGETYPE}" />
-										<ObjectStatus text="{pick>STATUS_ID}" state="{= ${pick>STATUS_ID} === 'COMPLETED' ? 'Success' : 'Information' }" />
-									</cells>
-								</ColumnListItem>
-							</items>
-						</Table>
+						<t:Table id="itemsTable" rows="{pick>/items}" selectionMode="None" visibleRowCountMode="Fixed" visibleRowCount="8" enableColumnReordering="true" enableColumnFreeze="true">
+							<t:columns>
+								<t:Column width="13rem"><t:label><Label text="{i18n>pickItemMaterial}" /></t:label><t:template><Text text="{pick>MATERIAL_MATERIAL}" wrapping="false" /></t:template></t:Column>
+								<t:Column width="8rem" hAlign="End"><t:label><Label text="{i18n>pickItemTotalQty}" /></t:label><t:template><ObjectNumber number="{pick>TOTALQUANTITY}" unit="{pick>UOM_UNITCODE}" /></t:template></t:Column>
+								<t:Column width="8rem" hAlign="End"><t:label><Label text="{i18n>pickItemOpenQty}" /></t:label><t:template><ObjectNumber number="{pick>OPENQUANTITY}" unit="{pick>UOM_UNITCODE}" /></t:template></t:Column>
+								<t:Column width="8rem" hAlign="End"><t:label><Label text="{i18n>pickItemPalletisedQty}" /></t:label><t:template><Text text="{pick>PALLETISEDQUANTITY}" /></t:template></t:Column>
+								<t:Column width="8rem" hAlign="End"><t:label><Label text="{i18n>pickItemDecantedQty}" /></t:label><t:template><Text text="{pick>DECANTEDQUANTITY}" /></t:template></t:Column>
+								<t:Column width="5rem"><t:label><Label text="{i18n>pickItemUom}" /></t:label><t:template><Text text="{pick>UOM_UNITCODE}" /></t:template></t:Column>
+								<t:Column width="6rem" hAlign="End"><t:label><Label text="{i18n>pickItemNumerator}" /></t:label><t:template><Text text="{pick>NUMERATORFORCASE}" /></t:template></t:Column>
+								<t:Column width="6rem" hAlign="End"><t:label><Label text="{i18n>pickItemDenominator}" /></t:label><t:template><Text text="{pick>DENOMINATORFORCASE}" /></t:template></t:Column>
+								<t:Column width="8rem"><t:label><Label text="{i18n>pickItemBatch}" /></t:label><t:template><Text text="{pick>BATCH}" /></t:template></t:Column>
+								<t:Column width="5rem"><t:label><Label text="{i18n>pickItemSLoc}" /></t:label><t:template><Text text="{pick>SLOC}" /></t:template></t:Column>
+								<t:Column width="7rem"><t:label><Label text="{i18n>pickItemWarehouse}" /></t:label><t:template><Text text="{pick>WAREHOUSE_WAREHOUSENUMBER}" /></t:template></t:Column>
+								<t:Column width="9rem"><t:label><Label text="{i18n>pickItemBin}" /></t:label><t:template><Text text="{pick>SOURCESTORAGEBIN}" /></t:template></t:Column>
+								<t:Column width="6rem"><t:label><Label text="{i18n>pickItemStorageType}" /></t:label><t:template><Text text="{pick>SOURCESTORAGETYPE}" /></t:template></t:Column>
+								<t:Column width="6rem" hAlign="End"><t:label><Label text="{i18n>pickItemPosition}" /></t:label><t:template><Text text="{pick>POSITIONINCAGE}" /></t:template></t:Column>
+								<t:Column width="5rem" hAlign="End"><t:label><Label text="{i18n>pickItemDrop}" /></t:label><t:template><Text text="{pick>DROP}" /></t:template></t:Column>
+								<t:Column width="8rem"><t:label><Label text="{i18n>pickItemShipTo}" /></t:label><t:template><Text text="{pick>SHIPTO}" /></t:template></t:Column>
+								<t:Column width="8rem" hAlign="End"><t:label><Label text="{i18n>pickItemNominalWeight}" /></t:label><t:template><Text text="{pick>NOMINALWEIGHT}" /></t:template></t:Column>
+								<t:Column width="8rem" hAlign="End"><t:label><Label text="{i18n>pickItemActualWeight}" /></t:label><t:template><Text text="{pick>ACTUALWEIGHT}" /></t:template></t:Column>
+								<t:Column width="7rem" hAlign="End"><t:label><Label text="{i18n>pickItemCube}" /></t:label><t:template><Text text="{pick>CUBE}" /></t:template></t:Column>
+								<t:Column width="8rem"><t:label><Label text="{i18n>pickItemPickSeq}" /></t:label><t:template><Text text="{pick>PICKSEQUENCE}" /></t:template></t:Column>
+								<t:Column width="10rem"><t:label><Label text="{i18n>pickItemLabel}" /></t:label><t:template><Text text="{pick>PICKSTICKLABELID}" /></t:template></t:Column>
+								<t:Column width="9rem"><t:label><Label text="{i18n>pickItemFinalPallet}" /></t:label><t:template><Text text="{pick>FINALPALLETID}" /></t:template></t:Column>
+								<t:Column width="8rem"><t:label><Label text="{i18n>pickItemPackBox}" /></t:label><t:template><Text text="{pick>PACKBOXTYPE_PACKBOXTYPE}" /></t:template></t:Column>
+								<t:Column width="6rem" hAlign="Center"><t:label><Label text="{i18n>pickItemShort}" /></t:label><t:template><Text text="{= ${pick>ISSHORT} ? 'Yes' : 'No' }" /></t:template></t:Column>
+								<t:Column width="9rem"><t:label><Label text="{i18n>pickItemShortReason}" /></t:label><t:template><Text text="{pick>SHORTREASONCODE_CODE}" /></t:template></t:Column>
+								<t:Column width="6rem" hAlign="Center"><t:label><Label text="{i18n>pickItemCase}" /></t:label><t:template><Text text="{= ${pick>ISCASE} ? 'Yes' : 'No' }" /></t:template></t:Column>
+								<t:Column width="8rem" hAlign="Center"><t:label><Label text="{i18n>pickItemReplen}" /></t:label><t:template><Text text="{= ${pick>ISREPLENCOMPLETED} ? 'Yes' : 'No' }" /></t:template></t:Column>
+								<t:Column width="10rem"><t:label><Label text="{i18n>pickItemStatus}" /></t:label><t:template><ObjectStatus text="{pick>STATUS_ID}" state="{= ${pick>STATUS_ID} === 'COMPLETED' ? 'Success' : 'Information' }" /></t:template></t:Column>
+							</t:columns>
+							<t:noData><Text text="{i18n>pickItemsNoData}" /></t:noData>
+						</t:Table>
 					</Panel>
 
 					<!-- Empty state: animated warehouse-picker illustration -->
