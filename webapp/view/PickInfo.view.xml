@@ -56,6 +56,34 @@
 						</ObjectHeader>
 					</Panel>
 
+					<!-- Pick Task items -->
+					<Panel headerText="{i18n>pickItemsHeader}" width="auto" visible="{pick>/hasTask}" class="sapUiSmallMarginTop">
+						<Table items="{pick>/items}" growing="true" growingThreshold="50" sticky="ColumnHeaders" noDataText="{i18n>pickItemsNoData}">
+							<columns>
+								<Column><Text text="{i18n>pickItemMaterial}" /></Column>
+								<Column hAlign="End"><Text text="{i18n>pickItemTotalQty}" /></Column>
+								<Column hAlign="End"><Text text="{i18n>pickItemOpenQty}" /></Column>
+								<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>pickItemBatch}" /></Column>
+								<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>pickItemBin}" /></Column>
+								<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>pickItemStorageType}" /></Column>
+								<Column hAlign="Center"><Text text="{i18n>pickItemStatus}" /></Column>
+							</columns>
+							<items>
+								<ColumnListItem>
+									<cells>
+										<ObjectIdentifier title="{pick>MATERIAL_MATERIAL}" text="{pick>SLOC}" />
+										<ObjectNumber number="{pick>TOTALQUANTITY}" unit="{pick>UOM_UNITCODE}" />
+										<ObjectNumber number="{pick>OPENQUANTITY}" unit="{pick>UOM_UNITCODE}" />
+										<Text text="{pick>BATCH}" />
+										<Text text="{pick>SOURCESTORAGEBIN}" />
+										<Text text="{pick>SOURCESTORAGETYPE}" />
+										<ObjectStatus text="{pick>STATUS_ID}" state="{= ${pick>STATUS_ID} === 'COMPLETED' ? 'Success' : 'Information' }" />
+									</cells>
+								</ColumnListItem>
+							</items>
+						</Table>
+					</Panel>
+
 					<!-- Empty state: animated warehouse-picker illustration -->
 					<VBox visible="{= !${pick>/hasTask} }" alignItems="Center" class="sapUiMediumMarginTop">
 						<Image src="{pick>/artUrl}" width="20rem" densityAware="false" />

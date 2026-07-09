@@ -16,6 +16,7 @@ sap.ui.define([
 	var CONFIG = {
 		SERVICE_BASE: "/ReconcileServices",
 		TASK: { name: "getPickTaskDetails", param: "ID" },
+		ITEMS: { name: "getPickTaskItems", param: "ID" },
 		LOGS: { name: "getPickUserLogs", param: "User_ID", dateParam: "EventDate" }
 	};
 
@@ -48,6 +49,7 @@ sap.ui.define([
 				hasTask: false,
 				hasLogs: false,
 				task: {},
+				items: [],
 				tree: [],
 				summary: {},
 				artUrl: sap.ui.require.toUrl("com/bluestonex/cloudwmreconcilliationui/img/picker-animation.svg")
@@ -109,6 +111,7 @@ sap.ui.define([
 			var oTask = (aRows && aRows.length) ? aRows[0] : null;
 			if (!oTask) {
 				oModel.setProperty("/hasTask", false);
+				oModel.setProperty("/items", []);
 				MessageToast.show(this._t("pickNoResult"));
 				return;
 			}
@@ -116,6 +119,22 @@ sap.ui.define([
 			oModel.setProperty("/task", oTask);
 			oModel.setProperty("/hasTask", true);
 			oModel.setProperty("/hasLogs", false);
+			// Load the item lines for this pick task and show them below the header.
+			this._loadTaskItems(oTask.ID);
+		},
+
+		// Fetch the pick-task item lines (getPickTaskItems) for a header ID.
+		_loadTaskItems: function (sId) {
+			var oModel = this.getView().getModel("pick");
+			oModel.setProperty("/items", []);
+			if (!sId) { return; }
+			var sUrl = CONFIG.SERVICE_BASE + "/" + CONFIG.ITEMS.name +
+				"(" + CONFIG.ITEMS.param + "='" + encodeURIComponent(sId) + "')";
+			this._ajax(sUrl).then(function (aRows) {
+				oModel.setProperty("/items", Array.isArray(aRows) ? aRows : []);
+			}).catch(function () {
+				oModel.setProperty("/items", []);
+			});
 		},
 
 		_showLogs: function (aRows) {
