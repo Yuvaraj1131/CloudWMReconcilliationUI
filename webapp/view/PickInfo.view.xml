@@ -3,7 +3,6 @@
 	xmlns="sap.m"
 	xmlns:mvc="sap.ui.core.mvc"
 	xmlns:core="sap.ui.core"
-	xmlns:t="sap.ui.table"
 	displayBlock="true"
 	height="100%">
 
@@ -15,23 +14,13 @@
 				<Panel headerText="{i18n>pickLookupHeader}" width="auto">
 					<HBox alignItems="End" wrap="Wrap" class="sapUiSmallMargin">
 						<VBox class="sapUiSmallMarginEnd">
-							<Label text="{i18n>pickModeLabel}" labelFor="pickMode" />
-							<Select id="pickMode" selectedKey="{pick>/mode}" change=".onModeChange" width="16rem">
-								<core:Item key="TASK" text="{i18n>pickModeTask}" />
-							</Select>
-						</VBox>
-						<VBox class="sapUiSmallMarginEnd">
-							<Label text="{= ${pick>/mode} === 'LOGS' ? ${i18n>pickUserLabelOpt} : ${i18n>pickNoLabel} }" labelFor="pickInput" />
+							<Label text="{i18n>pickNoLabel}" labelFor="pickInput" />
 							<Input
 								id="pickInput"
 								value="{pick>/query}"
-								placeholder="{= ${pick>/mode} === 'LOGS' ? ${i18n>pickUserPlaceholder} : ${i18n>pickNoPlaceholder} }"
+								placeholder="{i18n>pickNoPlaceholder}"
 								submit=".onGetPick"
 								width="20rem" />
-						</VBox>
-						<VBox class="sapUiSmallMarginEnd" visible="{= ${pick>/mode} === 'LOGS' }">
-							<Label text="{i18n>pickDateLabel}" labelFor="pickDate" />
-							<DatePicker id="pickDate" value="{pick>/date}" valueFormat="yyyy-MM-dd" displayFormat="long" width="13rem" />
 						</VBox>
 						<Button text="{i18n>btnGetPick}" type="Emphasized" icon="sap-icon://search" press=".onGetPick" />
 					</HBox>
@@ -67,77 +56,8 @@
 						</ObjectHeader>
 					</Panel>
 
-					<!-- Picker activity: User -> Picks -> Events tree -->
-					<Panel width="auto" visible="{pick>/hasLogs}" class="sapUiSmallMarginTop">
-
-						<!-- report-style summary header -->
-						<VBox class="sapUiSmallMarginBegin sapUiSmallMarginTop">
-							<HBox alignItems="Center">
-								<core:Icon src="sap-icon://group" class="sapUiTinyMarginEnd" />
-								<Title id="pickLogsTitle" text="{i18n>pickLogsResult} — {pick>/summary/date}" level="H3" />
-							</HBox>
-							<HBox wrap="Wrap" alignItems="Center" class="sapUiTinyMarginTop">
-								<ObjectStatus text="{pick>/summary/scope}" class="sapUiTinyMarginEnd" />
-								<ObjectStatus text="{pick>/summary/tasks} {i18n>pickTasks}" state="Information" inverted="true" class="sapUiTinyMarginEnd" />
-								<ObjectStatus text="{pick>/summary/events} {i18n>pickEvents}" state="Information" inverted="true" class="sapUiTinyMarginEnd" />
-								<ObjectStatus text="{pick>/summary/completed} {i18n>pickCompleted}" state="Success" inverted="true" class="sapUiTinyMarginEnd" />
-								<ObjectStatus text="{pick>/summary/from}–{pick>/summary/to}" icon="sap-icon://history" />
-							</HBox>
-						</VBox>
-
-						<t:TreeTable
-							id="logsTable"
-							class="bsxZebra"
-							rows="{ path: 'pick>/tree', parameters: { arrayNames: ['children'] } }"
-							selectionMode="None"
-							visibleRowCount="16"
-							numberOfExpandedLevels="1"
-							enableColumnReordering="false"
-							ariaLabelledBy="pickLogsTitle">
-							<t:extension>
-								<OverflowToolbar>
-									<ToolbarSpacer />
-									<SearchField width="16rem" liveChange=".onLogSearch" search=".onLogSearch" placeholder="{i18n>pickLogSearch}" />
-									<Button text="{i18n>pickExport}" icon="sap-icon://excel-attachment" press=".onExportExcel" />
-								</OverflowToolbar>
-							</t:extension>
-							<t:columns>
-								<t:Column width="20rem">
-									<t:label><Label text="{i18n>pickColPickTime}" /></t:label>
-									<t:template>
-										<Text text="{= ${pick>isUser} ? ${pick>USER_ID} : (${pick>isPick} ? ${pick>PICKTASK_ID} : ${pick>_ts}) }" wrapping="false" />
-									</t:template>
-								</t:Column>
-								<t:Column width="16rem">
-									<t:label><Label text="{i18n>pickColEvent}" /></t:label>
-									<t:template>
-										<ObjectStatus text="{pick>_event}" state="{pick>_state}" inverted="{= !!${pick>isUser} || !!${pick>isPick} }" />
-									</t:template>
-								</t:Column>
-								<t:Column>
-									<t:label><Label text="{i18n>pickColItem}" /></t:label>
-									<t:template>
-										<Text text="{pick>ITEM_ID}" wrapping="false" />
-									</t:template>
-								</t:Column>
-								<t:Column width="7rem" hAlign="End">
-									<t:label><Label text="{i18n>pickColQty}" /></t:label>
-									<t:template>
-										<Text text="{pick>QUANTITY}" />
-									</t:template>
-								</t:Column>
-								<t:Column width="8rem">
-									<t:label><Label text="{i18n>pickColLevel}" /></t:label>
-									<t:template>
-										<Text text="{pick>_level}" />
-									</t:template>
-								</t:Column>
-							</t:columns>
-						</t:TreeTable>
-					</Panel>
-
 					<!-- Empty state: animated warehouse-picker illustration -->
-					<VBox visible="{= !${pick>/hasTask} &amp;&amp; !${pick>/hasLogs} }" alignItems="Center" class="sapUiMediumMarginTop">
+					<VBox visible="{= !${pick>/hasTask} }" alignItems="Center" class="sapUiMediumMarginTop">
 						<Image src="{pick>/artUrl}" width="20rem" densityAware="false" />
 						<Title text="{i18n>pickEmptyTitle}" level="H2" class="sapUiSmallMarginTop" />
 						<Text text="{i18n>pickEmpty}" textAlign="Center" class="sapUiTinyMarginTop" />
