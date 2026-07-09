@@ -14,7 +14,9 @@ sap.ui.define([
 	//                  getPickUserLogs(EventDate=…)                            -> ALL pickers that day
 	// =====================================================================
 	var CONFIG = {
-		SERVICE_BASE: "/ReconcileServices",
+		// Resolve relative to the app mount (see Reconciliation.controller): an
+		// absolute "/ReconcileServices" 404s under the deployed Work Zone approuter.
+		SERVICE_BASE: sap.ui.require.toUrl("com/bluestonex/cloudwmreconcilliationui") + "/ReconcileServices",
 		TASK: { name: "getPickTaskDetails", param: "ID" },
 		ITEMS: { name: "getPickTaskItems", param: "ID" },
 		LOGS: { name: "getPickUserLogs", param: "User_ID", dateParam: "EventDate" }

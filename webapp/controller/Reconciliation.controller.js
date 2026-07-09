@@ -62,9 +62,12 @@ sap.ui.define([
 
 	var CONFIG = {
 
-		// Base path of the deployed CAP service. The service is exposed at
-		// /ReconcileServices (note the trailing "s") — NOT the V4 default /odata/v4/…
-		SERVICE_BASE: "/ReconcileServices",
+		// Base path of the CAP service, resolved RELATIVE to the app's runtime
+		// mount. An absolute "/ReconcileServices" works in the BAS dev proxy but
+		// 404s once deployed under the Work Zone approuter (it hits the launchpad
+		// host root instead of the app's namespaced xs-app.json route). toUrl()
+		// yields "./…" locally and the namespaced path when deployed.
+		SERVICE_BASE: sap.ui.require.toUrl("com/bluestonex/cloudwmreconcilliationui") + "/ReconcileServices",
 
 		// Service 1 — ECC source. Unbound function, date passed as a parameter.
 		ECC: {
