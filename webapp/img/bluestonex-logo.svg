@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 44" width="144" height="44" role="img" aria-label="Bluestonex">
   <text x="0" y="27" font-family="'Poppins','Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="27" font-weight="700" letter-spacing="-0.5">
-    <tspan fill="#1CA5E0">Blue</tspan><tspan fill="#FFFFFF">stonex</tspan>
+    <tspan fill="#1CA5E0">Blue</tspan><tspan fill="#1A2B4A">stonex</tspan>
   </text>
-  <text x="2" y="40" font-family="'Poppins','Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="7.5" font-weight="500" letter-spacing="2.2" fill="#8A93A8">THE SAP UI5 EXPERTS</text>
+  <text x="2" y="40" font-family="'Poppins','Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="7.5" font-weight="500" letter-spacing="2.2" fill="#6B7280">THE SAP UI5 EXPERTS</text>
 </svg>

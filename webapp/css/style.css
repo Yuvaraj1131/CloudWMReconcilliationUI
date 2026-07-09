@@ -2,8 +2,7 @@
    LIPS Reconciliation Monitor — app-specific styling.
    The green/red row feedback for posted items is driven by two cooperating
    mechanisms: the ColumnListItem "highlight" property paints the left accent
-   bar from the model, and the .lipsPostedRow / .lipsFailedRow classes (added
-   to the row controls in Main.controller#_applyMissingRowStyles) wash the
+   bar from the model, and the .lipsPostedRow / .lipsFailedRow classes wash the
    whole row so the result reads clearly at a glance.
    ========================================================================== */
 
@@ -25,127 +24,114 @@
 }
 
 /* ==========================================================================
-   BLUESTONEX BRAND THEME
-   Look-and-feel overlay on top of sap_horizon. Pure styling — no markup or
-   logic depends on any of this. Achieved by re-pointing Horizon's own CSS
-   theming variables at the Bluestonex palette, plus a few shell-chrome tweaks.
+   SYSCO BRAND THEME (light)
+   Look-and-feel overlay on top of sap_horizon: white shell + canvas, Sysco
+   green section headings, Sysco blue buttons/links. Pure styling — re-points
+   Horizon's own CSS theming variables plus a few shell-chrome tweaks.
    ========================================================================== */
 
 :root {
-	/* --- Bluestonex palette (from the corporate dashboard) --- */
-	--bsx-navy:        #0B1020;   /* header + side navigation           */
-	--bsx-navy-2:      #141B30;   /* elevated dark / hover on dark      */
-	--bsx-blue:        #2570CF;   /* primary brand (CTAs, charts, links)*/
-	--bsx-blue-dark:   #1E5FB0;   /* brand hover/active                 */
-	--bsx-blue-bright: #1CA5E0;   /* logo highlight / info accents      */
-	--bsx-violet:      #7B5CFF;   /* secondary accent (selection, focus)*/
-	--bsx-canvas:      #F4F5F8;   /* page background                    */
-	--bsx-card:        #FFFFFF;   /* cards / panels / tables            */
-	--bsx-border:      #E3E6EC;   /* hairlines                          */
+	/* --- Sysco palette --- */
+	--sys-blue:       #0071CE;   /* primary brand — buttons, links, accents */
+	--sys-blue-dark:  #005BA6;   /* hover / active                         */
+	--sys-green:      #6BA539;   /* section / page headings                */
+	--sys-canvas:     #F5F6F7;   /* page background                        */
+	--sys-card:       #FFFFFF;   /* cards / panels / tables / header       */
+	--sys-text:       #32363A;   /* primary dark text                      */
+	--sys-border:     #E3E6EC;   /* hairlines                              */
+	--sys-navy:       #1A2B4A;   /* logo "stonex" / dark accents           */
 
 	/* --- Typography: Poppins headings, keeping the SAP body font as fallback --- */
 	--sapFontHeaderFamily: "Poppins", "72", "72full", "Segoe UI", Arial, sans-serif;
 
-	/* Consistent rounded corners for all field controls (input/select/date/search) */
+	/* Consistent rounded corners for fields + buttons */
 	--sapField_BorderCornerRadius: 8px;
 	--sapButton_BorderCornerRadius: 8px;
 
 	/* --- Re-point Horizon semantic variables --- */
-	--sapBrandColor:                       var(--bsx-blue);
-	--sapHighlightColor:                   var(--bsx-blue);
-	--sapBaseColor:                        var(--bsx-card);
-	--sapBackgroundColor:                  var(--bsx-canvas);
-	--sapContent_IconColor:                var(--bsx-blue);
+	--sapBrandColor:            var(--sys-blue);
+	--sapHighlightColor:        var(--sys-blue);
+	--sapBaseColor:             var(--sys-card);
+	--sapBackgroundColor:       var(--sys-canvas);
+	--sapContent_IconColor:     var(--sys-blue);
 
-	/* Emphasized buttons -> brand blue */
-	--sapButton_Emphasized_Background:         var(--bsx-blue);
-	--sapButton_Emphasized_BorderColor:        var(--bsx-blue);
-	--sapButton_Emphasized_Hover_Background:   var(--bsx-blue-dark);
-	--sapButton_Emphasized_Hover_BorderColor:  var(--bsx-blue-dark);
-	--sapButton_Emphasized_Active_Background:  var(--bsx-blue-dark);
+	/* Section / page headings in Sysco green */
+	--sapTitleColor:            var(--sys-green);
+	--sapGroup_TitleTextColor:  var(--sys-green);
+
+	/* Emphasized buttons -> Sysco blue */
+	--sapButton_Emphasized_Background:         var(--sys-blue);
+	--sapButton_Emphasized_BorderColor:        var(--sys-blue);
+	--sapButton_Emphasized_Hover_Background:   var(--sys-blue-dark);
+	--sapButton_Emphasized_Hover_BorderColor:  var(--sys-blue-dark);
+	--sapButton_Emphasized_Active_Background:  var(--sys-blue-dark);
 	--sapButton_Emphasized_TextColor:          #FFFFFF;
 
 	/* Links, selection, focus */
-	--sapLink_TextColor:      var(--bsx-blue);
-	--sapSelectedColor:       var(--bsx-blue);
-	--sapActiveColor:         var(--bsx-blue-dark);
-	--sapContent_FocusColor:  var(--bsx-violet);
+	--sapLink_TextColor:      var(--sys-blue);
+	--sapSelectedColor:       var(--sys-blue);
+	--sapActiveColor:         var(--sys-blue-dark);
+	--sapContent_FocusColor:  var(--sys-blue);
 
-	/* Surfaces */
-	--sapGroup_ContentBackground: var(--bsx-card);
-	--sapTile_Background:         var(--bsx-card);
-	--sapList_Background:         var(--bsx-card);
-	--sapList_HeaderBackground:   var(--bsx-card);
-	--sapPageHeader_Background:   var(--bsx-card);
-	--sapObjectHeader_Background: var(--bsx-card);
+	/* Surfaces stay white */
+	--sapGroup_ContentBackground: var(--sys-card);
+	--sapTile_Background:         var(--sys-card);
+	--sapList_Background:         var(--sys-card);
+	--sapList_HeaderBackground:   var(--sys-card);
+	--sapPageHeader_Background:   var(--sys-card);
+	--sapObjectHeader_Background: var(--sys-card);
 }
 
-/* ---- App shell: dark Bluestonex navy header + side rail ---- */
+/* ---- App shell: light header + light side rail ---- */
 .sapTntToolHeader {
-	background: linear-gradient(180deg, var(--bsx-navy) 0%, var(--bsx-navy-2) 100%) !important;
-	border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+	background: var(--sys-card) !important;
+	border-bottom: 1px solid var(--sys-border);
+}
+
+/* Header text + menu icon dark (the ToolHeader defaults to light-on-dark) */
+.sapTntToolHeader .sapMTitle,
+.sapTntToolHeader .sapMTitle .sapMTitleInner {
+	color: var(--sys-text) !important;
+	font-size: 1.125rem;
+	font-weight: 600;
+}
+.sapTntToolHeader .sapMBtn .sapUiIcon,
+.sapTntToolHeader .sapMBtnIcon {
+	color: var(--sys-text) !important;
 }
 
 .sapTntSideNavigation,
 .sapTntSideNavigationFlexible {
-	background: var(--bsx-navy) !important;
+	background: var(--sys-card) !important;
+	border-right: 1px solid var(--sys-border);
 }
 
-/* The whole side chrome is a dark rail. Neutralize the global white surface
-   variables here so NO descendant container (list, group, overflow area) can
-   paint white — this is what turned the rail white when collapsed. Belt-and-
-   suspenders: also hard-set the aside/containers to the navy. */
-.sapTntToolPageAside,
-.sapTntToolPageAside .sapTntSideNavigation,
-.sapTntToolPageAside .sapTntSideNavigationFlexible {
-	--sapList_Background: transparent;
-	--sapList_HeaderBackground: transparent;
-	--sapGroup_ContentBackground: transparent;
-	--sapBaseColor: transparent;
-	background-color: var(--bsx-navy) !important;
-}
-
-/* Header hamburger (menu) icon — white so it stays visible on the navy header */
-.sapTntToolHeader .sapMBtn .sapUiIcon,
-.sapTntToolHeader .sapMBtnIcon {
-	color: #FFFFFF !important;
-}
-
-/* Side navigation is a DARK rail. Its items were inheriting a white list
-   background from the global surface variables, which made an unselected item
-   look active (two highlights at once). Force the rail treatment explicitly:
-   transparent items + light text, and one clear brand-blue selected state. */
-.sapTntSideNavigation .sapTntNLI {
-	background-color: transparent !important;
-}
+/* Side-nav items: light rail, dark text, Sysco-blue selected state */
 .sapTntSideNavigation .sapTntNLIText,
 .sapTntSideNavigation .sapTntNLIIcon {
-	color: rgba(255, 255, 255, 0.85) !important;
+	color: var(--sys-text) !important;
 }
-/* Keep labels on one line so they don't wrap/squeeze during the expand
-   animation (they were compressing to two lines then snapping wide). */
+.sapTntSideNavigation .sapTntNLI:hover {
+	background-color: #EFF3F8 !important;
+}
+.sapTntSideNavigation .sapTntNLISelected {
+	background-color: #E6F1FB !important;
+	box-shadow: inset 3px 0 0 0 var(--sys-blue);
+}
+.sapTntSideNavigation .sapTntNLISelected .sapTntNLIText,
+.sapTntSideNavigation .sapTntNLISelected .sapTntNLIIcon {
+	color: var(--sys-blue) !important;
+	font-weight: 600;
+}
+/* Keep labels on one line (no squeeze during the expand animation) and keep
+   selection / focus contained inside the rail (default overflow is visible). */
+.sapTntSideNavigation {
+	overflow-x: hidden;
+}
 .sapTntSideNavigation .sapTntNLIText {
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-}
-.sapTntSideNavigation .sapTntNLI:hover {
-	background-color: var(--bsx-navy-2) !important;
-}
-.sapTntSideNavigation .sapTntNLISelected {
-	background-color: var(--bsx-navy-2) !important;
-	box-shadow: inset 3px 0 0 0 var(--bsx-blue-bright);
-}
-.sapTntSideNavigation .sapTntNLISelected .sapTntNLIText,
-.sapTntSideNavigation .sapTntNLISelected .sapTntNLIIcon {
-	color: #FFFFFF !important;
-}
-
-/* Keep selection / focus / flyout contained inside the rail — never bleed onto
-   the content (the side nav renders with overflow:visible by default, which let
-   the focus ring and selected pill spill over the page). */
-.sapTntSideNavigation {
-	overflow-x: hidden;
 }
 .sapTntSideNavigation .sapTntNLI:focus,
 .sapTntSideNavigation .sapTntNLI a:focus,
@@ -159,14 +145,6 @@
 	width: auto;
 	margin: 0 0.25rem 0 0.5rem;
 }
-
-/* Shell title next to the logo: white, right-sized, snug to the brand mark */
-.sapTntToolHeader .sapMTitle,
-.sapTntToolHeader .sapMTitle .sapMTitleInner {
-	color: #FFFFFF !important;
-	font-size: 1.125rem;
-	font-weight: 600;
-}
 .bsxShellTitle.sapMTitle {
 	margin-left: 0.25rem;
 }
@@ -175,16 +153,16 @@
 .sapFDynamicPage,
 .sapMPage,
 .sapMPageBg {
-	background: var(--bsx-canvas) !important;
+	background: var(--sys-canvas) !important;
 }
 
 /* Panels and tables read as elevated white cards */
 .sapMPanel,
 .sapMList,
 .sapUiTable {
-	background: var(--bsx-card);
+	background: var(--sys-card);
 	border-radius: 12px;
-	box-shadow: 0 1px 3px rgba(11, 16, 32, 0.06), 0 4px 12px rgba(11, 16, 32, 0.04);
+	box-shadow: 0 1px 3px rgba(26, 43, 74, 0.06), 0 4px 12px rgba(26, 43, 74, 0.04);
 }
 
 .sapMPanel {
@@ -192,57 +170,35 @@
 	margin-bottom: 0.75rem;
 }
 
-/* The IconTabBar (ECC/HANA/Missing) rendered with square corners while the
-   panels/tables were rounded — round it (and clip its content) so every card
-   reads consistently curved. */
+/* Round the IconTabBar card (was square) to match the panels/tables */
 .sapMITB {
 	border-radius: 12px;
 	overflow: hidden;
 }
 
-/* Consistent rounded corners on inputs / search / select / date picker to
-   match the 8px buttons (were 0–4px). */
+/* Consistent rounded corners on inputs / search / select / date picker */
 .sapMSF,
 .sapMSlt,
 .sapMInputBaseContentWrapper {
 	border-radius: 8px;
 }
 
-/* Emphasized (primary) buttons: brand blue with a soft brand-tinted shadow */
+/* Emphasized (primary) buttons: Sysco blue with a soft brand-tinted shadow */
 .sapMBtnEmphasized.sapMBtnInner,
 .sapMBtnEmphasized .sapMBtnInner {
-	box-shadow: 0 2px 6px rgba(37, 112, 207, 0.35);
+	box-shadow: 0 2px 6px rgba(0, 113, 206, 0.30);
 	border-radius: 8px;
 }
 
 /* IconTabBar selected filter uses the brand blue underline */
 .sapMITBSelected .sapMITBText,
 .sapMITBSelected .sapMITBCount {
-	color: var(--bsx-blue) !important;
+	color: var(--sys-blue) !important;
 }
 .sapMITBFilter.sapMITBSelected:after {
-	background-color: var(--bsx-blue) !important;
+	background-color: var(--sys-blue) !important;
 }
 
-/* Rounded search / input affordances to match the modern brand look */
 .sapMDynamicPageTitle {
 	background: transparent;
-}
-
-/* ---- Picker Activity tree table: white/grey zebra rows instead of line dividers ---- */
-.bsxZebra .sapUiTableCtrl > tbody > tr.sapUiTableTr > td.sapUiTableCell,
-.bsxZebra .sapUiTableRowHdr {
-	border-bottom: none;                       /* drop the horizontal divider lines */
-}
-/* odd (1st, 3rd, …) rows white */
-.bsxZebra .sapUiTableCtrl > tbody > tr.sapUiTableTr:nth-child(odd) > td.sapUiTableCell {
-	background-color: #FFFFFF;
-}
-/* even (2nd, 4th, …) rows soft grey */
-.bsxZebra .sapUiTableCtrl > tbody > tr.sapUiTableTr:nth-child(even) > td.sapUiTableCell {
-	background-color: #F3F4F7;
-}
-/* keep vertical column separators subtle so the stripes read as the divider */
-.bsxZebra .sapUiTableCtrl > tbody > tr.sapUiTableTr > td.sapUiTableCell {
-	border-right-color: #EDEFF3;
 }
