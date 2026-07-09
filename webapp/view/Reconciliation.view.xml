@@ -116,11 +116,11 @@
 								<t:columns>
 									<t:Column width="9rem"><t:label><Label text="{i18n>colVbeln}" /></t:label><t:template><Text text="{ecc>Delivery_Delivery}" wrapping="false" /></t:template></t:Column>
 									<t:Column width="7rem"><t:label><Label text="{i18n>colPosnr}" /></t:label><t:template><Text text="{ecc>Item}" wrapping="false" /></t:template></t:Column>
-									<t:Column width="13rem"><t:label><Label text="{i18n>colMatnr}" /></t:label><t:template><Text text="{ecc>Material_Material}" wrapping="false" /></t:template></t:Column>
+									<t:Column><t:label><Label text="{i18n>colMatnr}" /></t:label><t:template><Text text="{ecc>Material_Material}" wrapping="false" /></t:template></t:Column>
 									<t:Column width="8rem" hAlign="End"><t:label><Label text="{i18n>colLfimg}" /></t:label><t:template><ObjectNumber number="{ecc>DeliveryQuantity}" unit="{ecc>SalesUnit_UnitCode}" /></t:template></t:Column>
 									<t:Column width="6rem"><t:label><Label text="{i18n>colVrkme}" /></t:label><t:template><Text text="{ecc>SalesUnit_UnitCode}" wrapping="false" /></t:template></t:Column>
 									<t:Column width="7rem"><t:label><Label text="{i18n>colWerks}" /></t:label><t:template><Text text="{ecc>Plant}" wrapping="false" /></t:template></t:Column>
-									<t:Column width="9rem"><t:label><Label text="{i18n>colLgort}" /></t:label><t:template><Text text="{ecc>StorageLocation}" wrapping="false" /></t:template></t:Column>
+									<t:Column><t:label><Label text="{i18n>colLgort}" /></t:label><t:template><Text text="{ecc>StorageLocation}" wrapping="false" /></t:template></t:Column>
 								</t:columns>
 								<t:noData><Text text="{i18n>noDataEcc}" /></t:noData>
 							</t:Table>
@@ -139,11 +139,11 @@
 								<t:columns>
 									<t:Column width="9rem"><t:label><Label text="{i18n>colVbeln}" /></t:label><t:template><Text text="{hana>Delivery_Delivery}" wrapping="false" /></t:template></t:Column>
 									<t:Column width="7rem"><t:label><Label text="{i18n>colPosnr}" /></t:label><t:template><Text text="{hana>Item}" wrapping="false" /></t:template></t:Column>
-									<t:Column width="13rem"><t:label><Label text="{i18n>colMatnr}" /></t:label><t:template><Text text="{hana>Material_Material}" wrapping="false" /></t:template></t:Column>
+									<t:Column><t:label><Label text="{i18n>colMatnr}" /></t:label><t:template><Text text="{hana>Material_Material}" wrapping="false" /></t:template></t:Column>
 									<t:Column width="8rem" hAlign="End"><t:label><Label text="{i18n>colLfimg}" /></t:label><t:template><ObjectNumber number="{hana>DeliveryQuantity}" unit="{hana>SalesUnit_UnitCode}" /></t:template></t:Column>
 									<t:Column width="6rem"><t:label><Label text="{i18n>colVrkme}" /></t:label><t:template><Text text="{hana>SalesUnit_UnitCode}" wrapping="false" /></t:template></t:Column>
 									<t:Column width="7rem"><t:label><Label text="{i18n>colWerks}" /></t:label><t:template><Text text="{hana>Plant}" wrapping="false" /></t:template></t:Column>
-									<t:Column width="9rem"><t:label><Label text="{i18n>colLgort}" /></t:label><t:template><Text text="{hana>StorageLocation}" wrapping="false" /></t:template></t:Column>
+									<t:Column><t:label><Label text="{i18n>colLgort}" /></t:label><t:template><Text text="{hana>StorageLocation}" wrapping="false" /></t:template></t:Column>
 								</t:columns>
 								<t:noData><Text text="{i18n>noDataHana}" /></t:noData>
 							</t:Table>
@@ -165,11 +165,11 @@
 								<t:columns>
 									<t:Column width="9rem"><t:label><Label text="{i18n>colVbeln}" /></t:label><t:template><Text text="{missing>Delivery_Delivery}" wrapping="false" /></t:template></t:Column>
 									<t:Column width="7rem"><t:label><Label text="{i18n>colPosnr}" /></t:label><t:template><Text text="{missing>Item}" wrapping="false" /></t:template></t:Column>
-									<t:Column width="13rem"><t:label><Label text="{i18n>colMatnr}" /></t:label><t:template><Text text="{missing>Material_Material}" wrapping="false" /></t:template></t:Column>
+									<t:Column><t:label><Label text="{i18n>colMatnr}" /></t:label><t:template><Text text="{missing>Material_Material}" wrapping="false" /></t:template></t:Column>
 									<t:Column width="8rem" hAlign="End"><t:label><Label text="{i18n>colLfimg}" /></t:label><t:template><ObjectNumber number="{missing>DeliveryQuantity}" unit="{missing>SalesUnit_UnitCode}" /></t:template></t:Column>
 									<t:Column width="6rem"><t:label><Label text="{i18n>colVrkme}" /></t:label><t:template><Text text="{missing>SalesUnit_UnitCode}" wrapping="false" /></t:template></t:Column>
 									<t:Column width="7rem"><t:label><Label text="{i18n>colWerks}" /></t:label><t:template><Text text="{missing>Plant}" wrapping="false" /></t:template></t:Column>
-									<t:Column width="9rem"><t:label><Label text="{i18n>colLgort}" /></t:label><t:template><Text text="{missing>StorageLocation}" wrapping="false" /></t:template></t:Column>
+									<t:Column><t:label><Label text="{i18n>colLgort}" /></t:label><t:template><Text text="{missing>StorageLocation}" wrapping="false" /></t:template></t:Column>
 									<t:Column width="9rem" hAlign="Center"><t:label><Label text="{i18n>colStatus}" /></t:label>
 										<t:template>
 											<ObjectStatus
