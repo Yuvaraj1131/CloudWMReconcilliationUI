@@ -245,15 +245,15 @@ sap.ui.define([
 		onSearch: function (oEvent) {
 			var sQuery = (oEvent.getParameter("query") || oEvent.getParameter("newValue") || "").trim();
 			var oTable = oEvent.getSource();
-			// Walk up to the owning table (SearchField sits in the header toolbar).
-			while (oTable && !oTable.isA("sap.m.Table")) {
+			// Walk up to the owning grid table (SearchField sits in the extension toolbar).
+			while (oTable && !(oTable.isA && oTable.isA("sap.ui.table.Table"))) {
 				oTable = oTable.getParent();
 			}
 			if (!oTable) {
 				return;
 			}
 
-			var oBinding = oTable.getBinding("items");
+			var oBinding = oTable.getBinding("rows");
 			if (!oBinding) {
 				return;
 			}
@@ -274,24 +274,18 @@ sap.ui.define([
 		},
 
 		/**
-		 * Re-apply the posted/failed row tint whenever the Missing table re-renders
-		 * (initial load, growing, filtering). Keeps the green/red wash in sync with
-		 * the model — the "highlight" property alone only paints the left accent bar.
+		 * Select every not-yet-posted row. Operates on the FULL model (not just
+		 * rendered rows), which the virtualized grid table supports via index
+		 * selection — so it works even with thousands of rows off-screen.
 		 */
-		onMissingTableUpdate: function () {
-			this._applyMissingRowStyles();
-		},
-
 		onSelectAllPending: function () {
 			var oTable = this.byId("tblMissing");
-			var aItems = oTable.getItems();
-			var oModel = this.getView().getModel("missing");
+			var aItems = this.getView().getModel("missing").getProperty("/items") || [];
 
-			aItems.forEach(function (oItem) {
-				var oCtx = oItem.getBindingContext("missing");
-				// Only (re)select rows that have not yet been posted successfully.
-				if (oCtx && !oModel.getProperty(oCtx.getPath() + "/posted")) {
-					oTable.setSelectedItem(oItem, true);
+			oTable.clearSelection();
+			aItems.forEach(function (oItem, iIndex) {
+				if (!oItem.posted) {
+					oTable.addSelectionInterval(iIndex, iIndex);
 				}
 			});
 			this._updateSelectedCount();
@@ -304,8 +298,10 @@ sap.ui.define([
 			var oTable = this.byId("tblMissing");
 			var oModel = this.getView().getModel("missing");
 
-			var aContexts = oTable.getSelectedContexts().filter(function (oCtx) {
-				return !oModel.getProperty(oCtx.getPath() + "/posted");
+			var aContexts = oTable.getSelectedIndices().map(function (iIndex) {
+				return oTable.getContextByIndex(iIndex);
+			}).filter(function (oCtx) {
+				return oCtx && !oModel.getProperty(oCtx.getPath() + "/posted");
 			});
 
 			if (!aContexts.length) {
@@ -347,10 +343,9 @@ sap.ui.define([
 					oModel.setProperty(oCtx.getPath() + "/posted", true);
 					oModel.setProperty(oCtx.getPath() + "/postError", "");
 				});
-				oTable.removeSelections(true);
+				oTable.clearSelection();
 				this._updateSelectedCount();
 				this._refreshMissingCount();
-				this._applyMissingRowStyles();
 				MessageToast.show(this._t("postAllOk", [aItems.length]) + (sResult ? " — " + sResult : ""));
 			}.bind(this)).catch(function (oErr) {
 				var sMsg = (oErr && oErr.message) ? oErr.message : String(oErr);
@@ -358,7 +353,6 @@ sap.ui.define([
 					oModel.setProperty(oCtx.getPath() + "/posted", false);
 					oModel.setProperty(oCtx.getPath() + "/postError", sMsg);
 				});
-				this._applyMissingRowStyles();
 				MessageBox.error(this._t("postError") + "\n\n" + sMsg);
 			}.bind(this)).then(function () {
 				oUi.setProperty("/busy", false);
@@ -632,7 +626,7 @@ sap.ui.define([
 		/* ============================================================= */
 
 		_updateSelectedCount: function () {
-			var iCount = this.byId("tblMissing").getSelectedContexts().length;
+			var iCount = this.byId("tblMissing").getSelectedIndices().length;
 			this.getView().getModel("ui").setProperty("/selectedCount", iCount);
 		},
 
@@ -641,30 +635,6 @@ sap.ui.define([
 			var aItems = this.getView().getModel("missing").getProperty("/items") || [];
 			var iOutstanding = aItems.filter(function (o) { return !o.posted; }).length;
 			this.getView().getModel("ui").setProperty("/missingCount", iOutstanding);
-		},
-
-		/**
-		 * Tint each Missing-table row according to its post status:
-		 *   posted -> green (.lipsPostedRow), failed -> red (.lipsFailedRow).
-		 * Applied to the live ColumnListItem controls so the whole row colours,
-		 * complementing the left "highlight" accent driven from the model.
-		 */
-		_applyMissingRowStyles: function () {
-			var oTable = this.byId("tblMissing");
-			if (!oTable) {
-				return;
-			}
-			var oModel = this.getView().getModel("missing");
-			oTable.getItems().forEach(function (oItem) {
-				var oCtx = oItem.getBindingContext("missing");
-				if (!oCtx) {
-					return;
-				}
-				var bPosted = !!oModel.getProperty(oCtx.getPath() + "/posted");
-				var bFailed = !bPosted && !!oModel.getProperty(oCtx.getPath() + "/postError");
-				oItem.toggleStyleClass("lipsPostedRow", bPosted);
-				oItem.toggleStyleClass("lipsFailedRow", bFailed);
-			});
 		},
 
 		_t: function (sKey, aArgs) {
