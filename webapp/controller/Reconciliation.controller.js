@@ -60,9 +60,71 @@ sap.ui.define([
 		IsPicked: "IsPicked"
 	};
 
-	// ECC -> HANA field map for delivery HEADERS. Left null until ECC exposes
-	// DeliveriesSet — fill in once the raw delivery-header field names are known.
-	var ECC_DELIV_TO_HANA = null;
+	// ECC -> HANA field map for delivery HEADERS (ZWM_RECONCILE_SRV/DeliveriesSet).
+	// ECC casing differs from HANA in a few spots (DeliveryType/ShippingPoint/
+	// TotalWeight, and the ECC "Salesorg"/"Salesorganizatoion2" spellings); managed
+	// associations use the <assoc>_<key> FK column (…_UnitCode / …_WarehouseNumber).
+	// Omitted: SequenceinRoute (ECC String vs HANA Integer) and ECC-only sync fields
+	// (IsInitial / FromDateTime) that have no HANA counterpart.
+	var ECC_DELIV_TO_HANA = {
+		Delivery: "Delivery",
+		DeliveryType: "Deliverytype",
+		Createdby: "Createdby",
+		Createdon: "Createdon",
+		Time: "Time",
+		DeliveryDate: "DeliveryDate",
+		Plandgdsmvmntdate: "Plandgdsmvmntdate",
+		Route: "Route",
+		Route2: "Route2",
+		Salesdistrict: "Salesdistrict",
+		ShippingPoint: "Shippingpoint",
+		Salesorg: "Salesorganization",
+		Salesorganizatoion2: "Salesorganization2",
+		Completedelivery: "Completedelivery",
+		Billingblock: "Billingblock",
+		Deliveryblock: "Deliveryblock",
+		Sddocumentcateg: "Sddocumentcateg",
+		Shippingconditions: "Shippingconditions",
+		ShipToparty: "ShipToparty",
+		SoldToparty: "SoldToparty",
+		TotalWeight: "Totalweight",
+		Netweight: "Netweight",
+		Weightunit: "Weightunit_UnitCode",
+		Volume: "Volume",
+		Volumeunit: "Volumeunit_UnitCode",
+		Numberofpackages: "Numberofpackages",
+		Warehousenumber: "Warehousenumber_WarehouseNumber",
+		IDdeliverySplit: "IdDeliverysplit",
+		DistribChannel: "DistribChannel",
+		ExternalDeliveryid: "ExternalDeliveryid",
+		Order: "Order",
+		SearchProcedure: "SearchProcedure",
+		CorrDelivery: "CorrectionDelivery",
+		Procedure: "Procedure",
+		DocCondition: "DocConditionNo",
+		Netvalue: "Netvalue",
+		RouteSchedule: "RouteSchedule",
+		Receivingplant: "ReceivingPlant",
+		FinancialDocNo: "FinancialDocNo",
+		PaymtGuarantProc: "PaymtGuarantProc",
+		PickingTime: "PickingTime",
+		TranspPlanTime: "TranspPlanTime",
+		LoadingTime: "LoadingTime",
+		GoodsissueTime: "GoodsissueTime",
+		GoodsIssueTime2: "GoodsIssueTime2",
+		DoorforWhseNo: "DoorforWhseNo",
+		ShipmentInformationStatus: "ShipmentInformationStatus",
+		RetrunsasnCancelled: "ReturnsasnCancelled",
+		TimeZone: "TimeZone",
+		StatusDecentWhse: "StatusDecentWhse",
+		ScenarioLogisticExecution: "ScenarioLogisticExecution",
+		OrigSysType: "OriginalSystemType",
+		ChangerSysType: "LastChangerSystemType",
+		Georoute: "GeographicalRoute",
+		Georouteind: "ChgIndforRoute",
+		IsMonoCustomer: "IsMonoCustomer",
+		DeleteIndicator: "DeleteIndicator"
+	};
 
 	var CONFIG = {
 
@@ -509,12 +571,19 @@ sap.ui.define([
 					oOut[oMap[sFrom]] = oRaw[sFrom];
 				}
 			});
-			if (typeof oOut.CreatedOn === "string" && oOut.CreatedOn.indexOf("/Date(") === 0) {
-				oOut.CreatedOn = this._fromV2Date(oOut.CreatedOn);
-			}
-			if (typeof oOut.Time === "string" && oOut.Time.indexOf("PT") === 0) {
-				oOut.Time = this._fromIsoDuration(oOut.Time);
-			}
+			// Normalize OData V2 temporal literals wherever they appear (delivery
+			// items expose CreatedOn/Time; headers add Createdon/DeliveryDate/etc.):
+			//   "/Date(ms)/" -> yyyy-MM-dd, ISO-8601 duration "PT..." -> HH:mm:ss.
+			Object.keys(oOut).forEach(function (sKey) {
+				var vVal = oOut[sKey];
+				if (typeof vVal === "string") {
+					if (vVal.indexOf("/Date(") === 0) {
+						oOut[sKey] = this._fromV2Date(vVal);
+					} else if (vVal.indexOf("PT") === 0) {
+						oOut[sKey] = this._fromIsoDuration(vVal);
+					}
+				}
+			}, this);
 			return oOut;
 		},
 
