@@ -8,7 +8,7 @@
 	displayBlock="true"
 	height="100%">
 
-	<f:DynamicPage id="page" fitContent="true" showFooter="{= ${ui>/selectedTab} === 'MISSING' &amp;&amp; ${ui>/masterData} === 'DELIVERY_ITEM' }" busy="{ui>/busy}" busyIndicatorDelay="0">
+	<f:DynamicPage id="page" fitContent="true" showFooter="{= ${ui>/selectedTab} === 'MISSING' &amp;&amp; (${ui>/masterData} === 'DELIVERY_ITEM' || ${ui>/masterData} === 'DELIVERY_HEADER') }" busy="{ui>/busy}" busyIndicatorDelay="0">
 
 		<!-- ============================ TITLE ============================ -->
 		<f:title>
@@ -81,7 +81,7 @@
 
 				<!-- Placeholder for master-data types that aren't wired up yet -->
 				<IllustratedMessage
-					visible="{= ${ui>/masterData} !== 'DELIVERY_ITEM' }"
+					visible="{= ${ui>/masterData} === 'SALES_HEADER' || ${ui>/masterData} === 'SALES_ITEM' }"
 					illustrationType="sapIllus-NoTasks"
 					title="{i18n>comingSoonTitle}"
 					description="{i18n>comingSoonText}"
@@ -92,7 +92,7 @@
 				     smooth and selection/highlight act on the full dataset. -->
 				<IconTabBar
 					id="tabBar"
-					visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"
+					visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' || ${ui>/masterData} === 'DELIVERY_HEADER' }"
 					selectedKey="{ui>/selectedTab}"
 					select=".onTabSelect"
 					expandable="false"
@@ -114,13 +114,26 @@
 									</OverflowToolbar>
 								</t:extension>
 								<t:columns>
-									<t:Column width="9rem"><t:label><Label text="{i18n>colVbeln}" /></t:label><t:template><Text text="{ecc>Delivery_Delivery}" wrapping="false" /></t:template></t:Column>
-									<t:Column width="7rem"><t:label><Label text="{i18n>colPosnr}" /></t:label><t:template><Text text="{ecc>Item}" wrapping="false" /></t:template></t:Column>
-									<t:Column><t:label><Label text="{i18n>colMatnr}" /></t:label><t:template><Text text="{ecc>Material_Material}" wrapping="false" /></t:template></t:Column>
-									<t:Column width="8rem" hAlign="End"><t:label><Label text="{i18n>colLfimg}" /></t:label><t:template><ObjectNumber number="{ecc>DeliveryQuantity}" unit="{ecc>SalesUnit_UnitCode}" /></t:template></t:Column>
-									<t:Column width="6rem"><t:label><Label text="{i18n>colVrkme}" /></t:label><t:template><Text text="{ecc>SalesUnit_UnitCode}" wrapping="false" /></t:template></t:Column>
-									<t:Column width="7rem"><t:label><Label text="{i18n>colWerks}" /></t:label><t:template><Text text="{ecc>Plant}" wrapping="false" /></t:template></t:Column>
-									<t:Column><t:label><Label text="{i18n>colLgort}" /></t:label><t:template><Text text="{ecc>StorageLocation}" wrapping="false" /></t:template></t:Column>
+									<!-- Delivery Item columns -->
+									<t:Column width="9rem" visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"><t:label><Label text="{i18n>colVbeln}" /></t:label><t:template><Text text="{ecc>Delivery_Delivery}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="7rem" visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"><t:label><Label text="{i18n>colPosnr}" /></t:label><t:template><Text text="{ecc>Item}" wrapping="false" /></t:template></t:Column>
+									<t:Column visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"><t:label><Label text="{i18n>colMatnr}" /></t:label><t:template><Text text="{ecc>Material_Material}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="8rem" hAlign="End" visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"><t:label><Label text="{i18n>colLfimg}" /></t:label><t:template><ObjectNumber number="{ecc>DeliveryQuantity}" unit="{ecc>SalesUnit_UnitCode}" /></t:template></t:Column>
+									<t:Column width="6rem" visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"><t:label><Label text="{i18n>colVrkme}" /></t:label><t:template><Text text="{ecc>SalesUnit_UnitCode}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="7rem" visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"><t:label><Label text="{i18n>colWerks}" /></t:label><t:template><Text text="{ecc>Plant}" wrapping="false" /></t:template></t:Column>
+									<t:Column visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"><t:label><Label text="{i18n>colLgort}" /></t:label><t:template><Text text="{ecc>StorageLocation}" wrapping="false" /></t:template></t:Column>
+									<!-- Delivery Header columns -->
+									<t:Column width="10rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhDelivery}" /></t:label><t:template><Text text="{ecc>Delivery}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="6rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhType}" /></t:label><t:template><Text text="{ecc>Deliverytype}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="7rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhRoute}" /></t:label><t:template><Text text="{ecc>Route}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="9rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhShipTo}" /></t:label><t:template><Text text="{ecc>ShipToparty}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="9rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhSoldTo}" /></t:label><t:template><Text text="{ecc>SoldToparty}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="7rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhShipPoint}" /></t:label><t:template><Text text="{ecc>Shippingpoint}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="9rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhDelivDate}" /></t:label><t:template><Text text="{ecc>DeliveryDate}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="8rem" hAlign="End" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhTotalWeight}" /></t:label><t:template><Text text="{ecc>Totalweight}" /></t:template></t:Column>
+									<t:Column width="8rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhWarehouse}" /></t:label><t:template><Text text="{ecc>Warehousenumber_WarehouseNumber}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="8rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhCreatedBy}" /></t:label><t:template><Text text="{ecc>Createdby}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="8rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhCreatedOn}" /></t:label><t:template><Text text="{ecc>Createdon}" wrapping="false" /></t:template></t:Column>
 								</t:columns>
 								<t:noData><Text text="{i18n>noDataEcc}" /></t:noData>
 							</t:Table>
@@ -137,13 +150,26 @@
 									</OverflowToolbar>
 								</t:extension>
 								<t:columns>
-									<t:Column width="9rem"><t:label><Label text="{i18n>colVbeln}" /></t:label><t:template><Text text="{hana>Delivery_Delivery}" wrapping="false" /></t:template></t:Column>
-									<t:Column width="7rem"><t:label><Label text="{i18n>colPosnr}" /></t:label><t:template><Text text="{hana>Item}" wrapping="false" /></t:template></t:Column>
-									<t:Column><t:label><Label text="{i18n>colMatnr}" /></t:label><t:template><Text text="{hana>Material_Material}" wrapping="false" /></t:template></t:Column>
-									<t:Column width="8rem" hAlign="End"><t:label><Label text="{i18n>colLfimg}" /></t:label><t:template><ObjectNumber number="{hana>DeliveryQuantity}" unit="{hana>SalesUnit_UnitCode}" /></t:template></t:Column>
-									<t:Column width="6rem"><t:label><Label text="{i18n>colVrkme}" /></t:label><t:template><Text text="{hana>SalesUnit_UnitCode}" wrapping="false" /></t:template></t:Column>
-									<t:Column width="7rem"><t:label><Label text="{i18n>colWerks}" /></t:label><t:template><Text text="{hana>Plant}" wrapping="false" /></t:template></t:Column>
-									<t:Column><t:label><Label text="{i18n>colLgort}" /></t:label><t:template><Text text="{hana>StorageLocation}" wrapping="false" /></t:template></t:Column>
+									<!-- Delivery Item columns -->
+									<t:Column width="9rem" visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"><t:label><Label text="{i18n>colVbeln}" /></t:label><t:template><Text text="{hana>Delivery_Delivery}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="7rem" visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"><t:label><Label text="{i18n>colPosnr}" /></t:label><t:template><Text text="{hana>Item}" wrapping="false" /></t:template></t:Column>
+									<t:Column visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"><t:label><Label text="{i18n>colMatnr}" /></t:label><t:template><Text text="{hana>Material_Material}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="8rem" hAlign="End" visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"><t:label><Label text="{i18n>colLfimg}" /></t:label><t:template><ObjectNumber number="{hana>DeliveryQuantity}" unit="{hana>SalesUnit_UnitCode}" /></t:template></t:Column>
+									<t:Column width="6rem" visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"><t:label><Label text="{i18n>colVrkme}" /></t:label><t:template><Text text="{hana>SalesUnit_UnitCode}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="7rem" visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"><t:label><Label text="{i18n>colWerks}" /></t:label><t:template><Text text="{hana>Plant}" wrapping="false" /></t:template></t:Column>
+									<t:Column visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"><t:label><Label text="{i18n>colLgort}" /></t:label><t:template><Text text="{hana>StorageLocation}" wrapping="false" /></t:template></t:Column>
+									<!-- Delivery Header columns -->
+									<t:Column width="10rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhDelivery}" /></t:label><t:template><Text text="{hana>Delivery}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="6rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhType}" /></t:label><t:template><Text text="{hana>Deliverytype}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="7rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhRoute}" /></t:label><t:template><Text text="{hana>Route}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="9rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhShipTo}" /></t:label><t:template><Text text="{hana>ShipToparty}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="9rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhSoldTo}" /></t:label><t:template><Text text="{hana>SoldToparty}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="7rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhShipPoint}" /></t:label><t:template><Text text="{hana>Shippingpoint}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="9rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhDelivDate}" /></t:label><t:template><Text text="{hana>DeliveryDate}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="8rem" hAlign="End" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhTotalWeight}" /></t:label><t:template><Text text="{hana>Totalweight}" /></t:template></t:Column>
+									<t:Column width="8rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhWarehouse}" /></t:label><t:template><Text text="{hana>Warehousenumber_WarehouseNumber}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="8rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhCreatedBy}" /></t:label><t:template><Text text="{hana>Createdby}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="8rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhCreatedOn}" /></t:label><t:template><Text text="{hana>Createdon}" wrapping="false" /></t:template></t:Column>
 								</t:columns>
 								<t:noData><Text text="{i18n>noDataHana}" /></t:noData>
 							</t:Table>
@@ -163,13 +189,27 @@
 									<t:RowSettings highlight="{= ${missing>posted} ? 'Success' : (${missing>postError} ? 'Error' : 'None') }" />
 								</t:rowSettingsTemplate>
 								<t:columns>
-									<t:Column width="9rem"><t:label><Label text="{i18n>colVbeln}" /></t:label><t:template><Text text="{missing>Delivery_Delivery}" wrapping="false" /></t:template></t:Column>
-									<t:Column width="7rem"><t:label><Label text="{i18n>colPosnr}" /></t:label><t:template><Text text="{missing>Item}" wrapping="false" /></t:template></t:Column>
-									<t:Column><t:label><Label text="{i18n>colMatnr}" /></t:label><t:template><Text text="{missing>Material_Material}" wrapping="false" /></t:template></t:Column>
-									<t:Column width="8rem" hAlign="End"><t:label><Label text="{i18n>colLfimg}" /></t:label><t:template><ObjectNumber number="{missing>DeliveryQuantity}" unit="{missing>SalesUnit_UnitCode}" /></t:template></t:Column>
-									<t:Column width="6rem"><t:label><Label text="{i18n>colVrkme}" /></t:label><t:template><Text text="{missing>SalesUnit_UnitCode}" wrapping="false" /></t:template></t:Column>
-									<t:Column width="7rem"><t:label><Label text="{i18n>colWerks}" /></t:label><t:template><Text text="{missing>Plant}" wrapping="false" /></t:template></t:Column>
-									<t:Column><t:label><Label text="{i18n>colLgort}" /></t:label><t:template><Text text="{missing>StorageLocation}" wrapping="false" /></t:template></t:Column>
+									<!-- Delivery Item columns -->
+									<t:Column width="9rem" visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"><t:label><Label text="{i18n>colVbeln}" /></t:label><t:template><Text text="{missing>Delivery_Delivery}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="7rem" visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"><t:label><Label text="{i18n>colPosnr}" /></t:label><t:template><Text text="{missing>Item}" wrapping="false" /></t:template></t:Column>
+									<t:Column visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"><t:label><Label text="{i18n>colMatnr}" /></t:label><t:template><Text text="{missing>Material_Material}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="8rem" hAlign="End" visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"><t:label><Label text="{i18n>colLfimg}" /></t:label><t:template><ObjectNumber number="{missing>DeliveryQuantity}" unit="{missing>SalesUnit_UnitCode}" /></t:template></t:Column>
+									<t:Column width="6rem" visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"><t:label><Label text="{i18n>colVrkme}" /></t:label><t:template><Text text="{missing>SalesUnit_UnitCode}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="7rem" visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"><t:label><Label text="{i18n>colWerks}" /></t:label><t:template><Text text="{missing>Plant}" wrapping="false" /></t:template></t:Column>
+									<t:Column visible="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"><t:label><Label text="{i18n>colLgort}" /></t:label><t:template><Text text="{missing>StorageLocation}" wrapping="false" /></t:template></t:Column>
+									<!-- Delivery Header columns -->
+									<t:Column width="10rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhDelivery}" /></t:label><t:template><Text text="{missing>Delivery}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="6rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhType}" /></t:label><t:template><Text text="{missing>Deliverytype}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="7rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhRoute}" /></t:label><t:template><Text text="{missing>Route}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="9rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhShipTo}" /></t:label><t:template><Text text="{missing>ShipToparty}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="9rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhSoldTo}" /></t:label><t:template><Text text="{missing>SoldToparty}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="7rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhShipPoint}" /></t:label><t:template><Text text="{missing>Shippingpoint}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="9rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhDelivDate}" /></t:label><t:template><Text text="{missing>DeliveryDate}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="8rem" hAlign="End" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhTotalWeight}" /></t:label><t:template><Text text="{missing>Totalweight}" /></t:template></t:Column>
+									<t:Column width="8rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhWarehouse}" /></t:label><t:template><Text text="{missing>Warehousenumber_WarehouseNumber}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="8rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhCreatedBy}" /></t:label><t:template><Text text="{missing>Createdby}" wrapping="false" /></t:template></t:Column>
+									<t:Column width="8rem" visible="{= ${ui>/masterData} === 'DELIVERY_HEADER' }"><t:label><Label text="{i18n>dhCreatedOn}" /></t:label><t:template><Text text="{missing>Createdon}" wrapping="false" /></t:template></t:Column>
+									<!-- Shared post-status column -->
 									<t:Column width="9rem" hAlign="Center"><t:label><Label text="{i18n>colStatus}" /></t:label>
 										<t:template>
 											<ObjectStatus

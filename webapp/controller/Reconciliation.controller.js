@@ -60,6 +60,10 @@ sap.ui.define([
 		IsPicked: "IsPicked"
 	};
 
+	// ECC -> HANA field map for delivery HEADERS. Left null until ECC exposes
+	// DeliveriesSet — fill in once the raw delivery-header field names are known.
+	var ECC_DELIV_TO_HANA = null;
+
 	var CONFIG = {
 
 		// Base path of the CAP service, resolved RELATIVE to the app's runtime
@@ -69,36 +73,25 @@ sap.ui.define([
 		// yields "./…" locally and the namespaced path when deployed.
 		SERVICE_BASE: sap.ui.require.toUrl("com/bluestonex/cloudwmreconcilliationui") + "/ReconcileServices",
 
-		// Service 1 — ECC source. Unbound function, date passed as a parameter.
-		ECC: {
-			type: "function",
-			name: "getECCDeliveryItems",
-			dateParam: "CreatedOn",
-			dateLiteral: "date",  // service accepts a bare yyyy-MM-dd (verified working)
-			fieldMap: ECC_TO_HANA // remap raw ECC keys to the canonical CAP shape
-		},
-
-		// Service 2 — HANA source. Unbound function, date passed as a parameter.
-		HANA: {
-			type: "function",
-			name: "getHanaDeliveryItems",
-			dateParam: "DeliveryDate",
-			dateLiteral: "date"             // -> 2026-06-22
-		},
-
-		// Service 3 — write the selected missing items into HANA. Unbound action.
-		POST: {
-			type: "action",
-			name: "updateHanaDeliveryItems",
-			paramName: "items",             // action parameter holding the array
-			useCsrf: true                   // fetch an X-CSRF-Token first (best-effort)
-		},
-
-		// Reconciliation key on ReconcileService.DeliveryItems.
-		KEY_FIELDS: ["Delivery_Delivery", "Item"],
-
-		// Entity properties shown in the tables / matched by the search field.
-		FIELDS: ["Delivery_Delivery", "Item", "Material_Material", "DeliveryQuantity", "SalesUnit_UnitCode", "Plant", "StorageLocation"]
+		// Per master-data type: ECC/HANA/POST services, reconcile key, display
+		// fields, and (item only) the client-side plant filter field.
+		TYPES: {
+			DELIVERY_ITEM: {
+				ECC:  { name: "getECCDeliveryItems",  dateParam: "CreatedOn",    fieldMap: ECC_TO_HANA },
+				HANA: { name: "getHanaDeliveryItems", dateParam: "DeliveryDate" },
+				POST: { name: "updateHanaDeliveryItems", paramName: "items", useCsrf: true },
+				KEY_FIELDS: ["Delivery_Delivery", "Item"],
+				FIELDS: ["Delivery_Delivery", "Item", "Material_Material", "DeliveryQuantity", "SalesUnit_UnitCode", "Plant", "StorageLocation"],
+				plantField: "Plant"
+			},
+			DELIVERY_HEADER: {
+				ECC:  { name: "getECCDeliveries",  dateParam: "CreatedOn",    fieldMap: ECC_DELIV_TO_HANA },
+				HANA: { name: "getHanaDeliveries", dateParam: "DeliveryDate" },
+				POST: { name: "updateHanaDeliveries", paramName: "items", useCsrf: true },
+				KEY_FIELDS: ["Delivery"],
+				FIELDS: ["Delivery", "Deliverytype", "Route", "ShipToparty", "SoldToparty", "DeliveryDate", "Createdby"]
+			}
+		}
 	};
 
 	return Controller.extend("com.bluestonex.cloudwmreconcilliationui.controller.Reconciliation", {
@@ -149,12 +142,20 @@ sap.ui.define([
 		/**
 		 * Fire Service 1 (ECC) and Service 2 (HANA) in parallel, then reconcile.
 		 */
+		// Active master-data type's config (services, key, fields, plant field);
+		// undefined for the not-yet-wired sales types.
+		_cfg: function () {
+			return CONFIG.TYPES[this.getView().getModel("ui").getProperty("/masterData")];
+		},
+
 		onLoad: function () {
 			var oUi = this.getView().getModel("ui");
 			var sDate = oUi.getProperty("/dateText");
+			var oCfg = this._cfg();
 
-			// Only the Delivery Item table is wired to services for now.
-			if (oUi.getProperty("/masterData") !== "DELIVERY_ITEM") {
+			// Live types have a service config (Delivery Item, Delivery Header);
+			// the sales types show a "coming soon" placeholder.
+			if (!oCfg) {
 				return;
 			}
 
@@ -165,34 +166,46 @@ sap.ui.define([
 
 			oUi.setProperty("/busy", true);
 
-			Promise.all([
-				this._fetchService(CONFIG.ECC, sDate),
-				this._fetchService(CONFIG.HANA, sDate)
+			// allSettled: one source failing (e.g. ECC DeliveriesSet not yet
+			// exposed) still shows the other side instead of blanking the screen.
+			Promise.allSettled([
+				this._fetchService(oCfg.ECC, sDate),
+				this._fetchService(oCfg.HANA, sDate)
 			]).then(function (aResults) {
-				var aEcc = aResults[0];
-				var aHana = aResults[1];
+				var oEccRes = aResults[0], oHanaRes = aResults[1];
 
-				// Refresh the plant dropdown from the FULL datasets (before filtering),
-				// always offering BR10 and an "All plants" clear option.
-				var oPlantSet = {};
-				aEcc.concat(aHana).forEach(function (o) {
-					var p = String(o.Plant == null ? "" : o.Plant).trim();
-					if (p) { oPlantSet[p] = true; }
-				});
-				oPlantSet.BR10 = true;
-				oUi.setProperty("/plants", [{ key: "", text: "All plants" }].concat(
-					Object.keys(oPlantSet).sort().map(function (p) { return { key: p, text: p }; })
-				));
+				// Without the HANA side there's nothing to reconcile against.
+				if (oHanaRes.status === "rejected") {
+					oUi.setProperty("/busy", false);
+					var oHErr = oHanaRes.reason;
+					MessageBox.error(this._t("loadError") + "\n\n" + (oHErr && oHErr.message ? oHErr.message : oHErr));
+					return;
+				}
 
-				// Optional plant filter (client-side): the ECC/HANA services take only
-				// a date, so narrow both datasets to the chosen plant before reconciling.
-				var sPlant = (oUi.getProperty("/plant") || "").trim();
-				if (sPlant) {
-					var fnByPlant = function (o) {
-						return String(o.Plant == null ? "" : o.Plant).trim() === sPlant;
-					};
-					aEcc = aEcc.filter(fnByPlant);
-					aHana = aHana.filter(fnByPlant);
+				var bEccFailed = (oEccRes.status === "rejected");
+				var aEcc = bEccFailed ? [] : oEccRes.value;
+				var aHana = oHanaRes.value;
+
+				// Plant filter + dropdown apply only to types that carry a plant field.
+				var sPlantField = oCfg.plantField;
+				if (sPlantField) {
+					var oPlantSet = {};
+					aEcc.concat(aHana).forEach(function (o) {
+						var p = String(o[sPlantField] == null ? "" : o[sPlantField]).trim();
+						if (p) { oPlantSet[p] = true; }
+					});
+					oPlantSet.BR10 = true;
+					oUi.setProperty("/plants", [{ key: "", text: "All plants" }].concat(
+						Object.keys(oPlantSet).sort().map(function (p) { return { key: p, text: p }; })
+					));
+					var sPlant = (oUi.getProperty("/plant") || "").trim();
+					if (sPlant) {
+						var fnByPlant = function (o) {
+							return String(o[sPlantField] == null ? "" : o[sPlantField]).trim() === sPlant;
+						};
+						aEcc = aEcc.filter(fnByPlant);
+						aHana = aHana.filter(fnByPlant);
+					}
 				}
 
 				this.getView().getModel("ecc").setProperty("/items", aEcc);
@@ -206,11 +219,13 @@ sap.ui.define([
 				oUi.setProperty("/busy", false);
 
 				var iMissing = this.getView().getModel("missing").getProperty("/items").length;
-				MessageToast.show(this._t("loadDone", [aEcc.length, aHana.length, iMissing]));
-
-				// Auto-navigate to the Missing Items tab when gaps are detected.
-				if (iMissing > 0) {
-					oUi.setProperty("/selectedTab", "MISSING");
+				if (bEccFailed) {
+					MessageToast.show(this._t("eccUnavailable"));
+				} else {
+					MessageToast.show(this._t("loadDone", [aEcc.length, aHana.length, iMissing]));
+					if (iMissing > 0) {
+						oUi.setProperty("/selectedTab", "MISSING");
+					}
 				}
 			}.bind(this)).catch(function (oErr) {
 				oUi.setProperty("/busy", false);
@@ -223,20 +238,19 @@ sap.ui.define([
 		},
 
 		/**
-		 * Master Data dropdown changed. Only "Delivery Item" is wired to services;
-		 * the others show a "coming soon" placeholder, so clear any stale data.
+		 * Master Data dropdown changed. Datasets/columns differ per type, so clear
+		 * everything and let the user re-load for the newly selected type.
 		 */
 		onMasterDataChange: function () {
 			var oUi = this.getView().getModel("ui");
-			if (oUi.getProperty("/masterData") !== "DELIVERY_ITEM") {
-				this.getView().getModel("ecc").setProperty("/items", []);
-				this.getView().getModel("hana").setProperty("/items", []);
-				this.getView().getModel("missing").setProperty("/items", []);
-				oUi.setProperty("/eccCount", 0);
-				oUi.setProperty("/hanaCount", 0);
-				oUi.setProperty("/missingCount", 0);
-				oUi.setProperty("/selectedCount", 0);
-			}
+			this.getView().getModel("ecc").setProperty("/items", []);
+			this.getView().getModel("hana").setProperty("/items", []);
+			this.getView().getModel("missing").setProperty("/items", []);
+			oUi.setProperty("/eccCount", 0);
+			oUi.setProperty("/hanaCount", 0);
+			oUi.setProperty("/missingCount", 0);
+			oUi.setProperty("/selectedCount", 0);
+			oUi.setProperty("/selectedTab", "ECC");
 		},
 
 		/**
@@ -263,7 +277,7 @@ sap.ui.define([
 				return;
 			}
 
-			var aFieldFilters = CONFIG.FIELDS.map(function (sField) {
+			var aFieldFilters = this._cfg().FIELDS.map(function (sField) {
 				return new Filter(sField, FilterOperator.Contains, sQuery);
 			});
 			oBinding.filter(new Filter({ filters: aFieldFilters, and: false }));
@@ -366,9 +380,9 @@ sap.ui.define([
 		 */
 		_callAction: function (aItems) {
 			var that = this;
-			var sUrl = this._serviceBase() + "/" + CONFIG.POST.name;
+			var sUrl = this._serviceBase() + "/" + this._cfg().POST.name;
 			var oBody = {};
-			oBody[CONFIG.POST.paramName] = aItems;
+			oBody[this._cfg().POST.paramName] = aItems;
 
 			var fnPost = function (sToken) {
 				return that._ajax(sUrl, "POST", oBody, sToken).then(function (oResp) {
@@ -380,7 +394,7 @@ sap.ui.define([
 				});
 			};
 
-			if (CONFIG.POST.useCsrf) {
+			if (this._cfg().POST.useCsrf) {
 				return this._csrfToken(this._serviceBase()).then(fnPost);
 			}
 			return fnPost("");
@@ -431,7 +445,7 @@ sap.ui.define([
 		},
 
 		_key: function (o) {
-			return CONFIG.KEY_FIELDS.map(function (sField) {
+			return this._cfg().KEY_FIELDS.map(function (sField) {
 				return String(o[sField] == null ? "" : o[sField]).trim();
 			}).join("");
 		},
