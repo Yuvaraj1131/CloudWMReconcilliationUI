@@ -56,7 +56,6 @@
 							selectedKey="{ui>/plant}"
 							items="{ui>/plants}"
 							change=".onLoad"
-							enabled="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"
 							width="8rem"
 							autoAdjustWidth="false"
 							class="sapUiSmallMarginEnd">
