@@ -46,7 +46,7 @@
 							valueFormat="yyyy-MM-dd"
 							displayFormat="long"
 							change=".onDateChange"
-							enabled="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"
+							enabled="{= ${ui>/masterData} === 'DELIVERY_ITEM' || ${ui>/masterData} === 'DELIVERY_HEADER' }"
 							width="13rem"
 							class="sapUiSmallMarginEnd" />
 						<ToolbarSeparator />
@@ -67,7 +67,7 @@
 							text="{i18n>btnLoad}"
 							type="Emphasized"
 							icon="sap-icon://synchronize"
-							enabled="{= ${ui>/masterData} === 'DELIVERY_ITEM' }"
+							enabled="{= ${ui>/masterData} === 'DELIVERY_ITEM' || ${ui>/masterData} === 'DELIVERY_HEADER' }"
 							press=".onLoad" />
 						<ToolbarSpacer />
 					</Toolbar>
