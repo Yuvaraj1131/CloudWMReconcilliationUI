@@ -151,7 +151,8 @@ sap.ui.define([
 				HANA: { name: "getHanaDeliveries", dateParam: "DeliveryDate" },
 				POST: { name: "updateHanaDeliveries", paramName: "items", useCsrf: true },
 				KEY_FIELDS: ["Delivery"],
-				FIELDS: ["Delivery", "Deliverytype", "Route", "ShipToparty", "SoldToparty", "DeliveryDate", "Createdby"]
+				FIELDS: ["Delivery", "Deliverytype", "Route", "ShipToparty", "SoldToparty", "DeliveryDate", "Createdby"],
+				plantField: "ReceivingPlant"
 			}
 		}
 	};
