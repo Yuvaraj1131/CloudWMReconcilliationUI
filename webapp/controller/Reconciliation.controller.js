@@ -314,6 +314,11 @@ sap.ui.define([
 			oUi.setProperty("/missingCount", 0);
 			oUi.setProperty("/selectedCount", 0);
 			oUi.setProperty("/selectedTab", "ECC");
+			// Reset the plant filter to "All plants": each type carries its own
+			// plant field (item Plant vs header ReceivingPlant, often blank), so a
+			// leftover selection like BR10 would silently filter the new type to 0.
+			oUi.setProperty("/plant", "");
+			oUi.setProperty("/plants", [{ key: "", text: "All plants" }]);
 		},
 
 		/**
