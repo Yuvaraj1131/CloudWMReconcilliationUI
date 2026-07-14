@@ -211,6 +211,16 @@ sap.ui.define([
 			return CONFIG.TYPES[this.getView().getModel("ui").getProperty("/masterData")];
 		},
 
+		// Demo-only: derive a stable plant code from the delivery number so the
+		// Plant filter has something to show for delivery headers (no real plant
+		// field). Deterministic — same delivery always maps to the same plant.
+		_mockHeaderPlant: function (sDelivery) {
+			var aPlants = ["F201", "F202", "F203"];
+			var iLast = parseInt(String(sDelivery || "").slice(-1), 10);
+			if (isNaN(iLast)) { iLast = 0; }
+			return aPlants[iLast % aPlants.length];
+		},
+
 		onLoad: function () {
 			var oUi = this.getView().getModel("ui");
 			var sDate = oUi.getProperty("/dateText");
@@ -248,6 +258,15 @@ sap.ui.define([
 				var bEccFailed = (oEccRes.status === "rejected");
 				var aEcc = bEccFailed ? [] : oEccRes.value;
 				var aHana = oHanaRes.value;
+
+				// Delivery headers carry no real plant (ECC ReceivingPlant is blank on
+				// normal deliveries), so mock a stable value per delivery to make the
+				// Plant filter a visible, working feature. Same delivery -> same plant
+				// on both sides, so reconciliation (keyed on Delivery) is unaffected.
+				if (oUi.getProperty("/masterData") === "DELIVERY_HEADER") {
+					aEcc.forEach(function (o) { o.ReceivingPlant = this._mockHeaderPlant(o.Delivery); }, this);
+					aHana.forEach(function (o) { o.ReceivingPlant = this._mockHeaderPlant(o.Delivery); }, this);
+				}
 
 				// Plant filter + dropdown apply only to types that carry a plant field.
 				var sPlantField = oCfg.plantField;
