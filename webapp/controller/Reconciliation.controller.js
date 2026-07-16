@@ -609,6 +609,17 @@ sap.ui.define([
 					}
 				}
 			}, this);
+			// Mirror the CPI message-mapping for IsPicked (delivery items only, so
+			// reconciled rows match integration-fed rows — same idea as OpenQuantity):
+			//   IsPicked = (IsPickedStatus is null or "") ? IsPicked : IsPickedStatus
+			// IsPickedStatus is an ECC-only field with no HANA column, so it lives
+			// here in the ECC->HANA map rather than being plumbed to the backend.
+			if (oRaw.IsPicked !== undefined || oRaw.IsPickedStatus !== undefined) {
+				var sStatus = oRaw.IsPickedStatus;
+				oOut.IsPicked = (sStatus === null || sStatus === undefined || sStatus === "")
+					? oRaw.IsPicked
+					: sStatus;
+			}
 			return oOut;
 		},
 
