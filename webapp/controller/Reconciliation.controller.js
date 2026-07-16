@@ -135,6 +135,10 @@ sap.ui.define([
 		// yields "./…" locally and the namespaced path when deployed.
 		SERVICE_BASE: sap.ui.require.toUrl("com/bluestonex/cloudwmreconcilliationui") + "/ReconcileServices",
 
+		// Max items per POST. The whole missing set in one body exceeds the
+		// request-size limit (HTTP 413), so the post is split into batches.
+		POST_BATCH_SIZE: 50,
+
 		// Per master-data type: ECC/HANA/POST services, reconcile key, display
 		// fields, and (item only) the client-side plant filter field.
 		TYPES: {
@@ -467,11 +471,22 @@ sap.ui.define([
 		 */
 		_callAction: function (aItems) {
 			var that = this;
-			var sUrl = this._serviceBase() + "/" + this._cfg().POST.name;
-			var oBody = {};
-			oBody[this._cfg().POST.paramName] = aItems;
+			var oPost = this._cfg().POST;
+			var sUrl = this._serviceBase() + "/" + oPost.name;
 
-			var fnPost = function (sToken) {
+			// Split into batches so a large selection stays under the request
+			// body-size limit (one big body returns HTTP 413 "request entity too
+			// large"). Batches post SEQUENTIALLY so each commits before the next.
+			var iSize = CONFIG.POST_BATCH_SIZE;
+			var aBatches = [];
+			for (var i = 0; i < aItems.length; i += iSize) {
+				aBatches.push(aItems.slice(i, i + iSize));
+			}
+			if (!aBatches.length) { aBatches.push([]); }
+
+			var fnPostBatch = function (aChunk, sToken) {
+				var oBody = {};
+				oBody[oPost.paramName] = aChunk;
 				return that._ajax(sUrl, "POST", oBody, sToken).then(function (oResp) {
 					// An action returning Edm.String comes back as { value: "…" } in V4.
 					if (oResp && typeof oResp === "object" && oResp.value !== undefined) {
@@ -481,10 +496,20 @@ sap.ui.define([
 				});
 			};
 
-			if (this._cfg().POST.useCsrf) {
-				return this._csrfToken(this._serviceBase()).then(fnPost);
+			var fnRunAll = function (sToken) {
+				return aBatches.reduce(function (oChain, aChunk) {
+					return oChain.then(function (sLast) {
+						return fnPostBatch(aChunk, sToken).then(function (sRes) {
+							return sRes || sLast;
+						});
+					});
+				}, Promise.resolve(""));
+			};
+
+			if (oPost.useCsrf) {
+				return this._csrfToken(this._serviceBase()).then(fnRunAll);
 			}
-			return fnPost("");
+			return fnRunAll("");
 		},
 
 		/**
